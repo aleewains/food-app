@@ -1,17 +1,42 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  Alert,
+} from "react-native";
 import LogoutButton from "./LogoutButton";
 import { signOut } from "firebase/auth";
 import { auth } from "../utils/firebase";
 import { router, useRouter } from "expo-router";
+import userService from "../services/firebaseService";
 
 export default function CustomDrawer({ navigation }) {
+  const [userData, setUserData] = useState();
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      router.replace("/(suth)/logIn"); //
+      router.replace("/(auth)/logIn"); //
     } catch (error) {
       console.log("Logout error:", error.message);
+    }
+  };
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+  const fetchUserProfile = async () => {
+    try {
+      const data = await userService.getUserProfile();
+      if (data) {
+        setUserData(data);
+        if (data.countryCode) setCountryCode(data.countryCode);
+      }
+    } catch (error) {
+      console.log("Current user:", auth.currentUser);
+      console.log("Current Error:", error);
+    } finally {
     }
   };
   const orders = require("../assets/drawer/orders.png");
@@ -23,19 +48,22 @@ export default function CustomDrawer({ navigation }) {
     <View style={styles.container}>
       <View style={styles.profileSection}>
         <Image
-          source={require("../assets/profile.png")}
+          source={
+            userData?.profileImage
+              ? { uri: userData.profileImage }
+              : require("../assets/profile.png")
+          }
           style={styles.profileImage}
         />
         <View style={styles.Bio}>
-          <Text style={styles.profileName}>Farion Wick</Text>
-          <Text style={styles.profileMail}>farionwick@gmail.com</Text>
+          <Text style={styles.profileName}>
+            {userData?.fullName || "Guest User"}
+          </Text>
+          <Text style={styles.profileMail}>{auth.currentUser?.email}</Text>
         </View>
       </View>
 
-      <TouchableOpacity
-        style={styles.item}
-        onPress={() => navigation.navigate("index")}
-      >
+      <TouchableOpacity style={styles.item} onPress={() => router.push("")}>
         <View style={styles.drawerItems}>
           <Image source={orders} style={styles.icon} />
           <Text style={styles.itemText}>My Orders</Text>
@@ -44,7 +72,7 @@ export default function CustomDrawer({ navigation }) {
 
       <TouchableOpacity
         style={styles.item}
-        onPress={() => navigation.navigate("profile")}
+        onPress={() => router.push("/drawer/myProfile")}
       >
         <View style={styles.drawerItems}>
           <Image source={profile} style={styles.icon} />
@@ -54,7 +82,7 @@ export default function CustomDrawer({ navigation }) {
 
       <TouchableOpacity
         style={styles.item}
-        onPress={() => navigation.navigate("favorites")}
+        onPress={() => router.push("/drawer/deliveryAddress")}
       >
         <View style={styles.drawerItems}>
           <Image source={location} style={styles.icon} />

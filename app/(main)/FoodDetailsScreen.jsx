@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,22 +7,30 @@ import {
   ScrollView,
   TouchableOpacity,
   ImageBackground,
-  SafeAreaView,
 } from "react-native";
-import {
-  ChevronLeft,
-  Heart,
-  Star,
-  Plus,
-  Minus,
-  ShoppingBag,
-} from "lucide-react-native";
+import { ChevronLeft, Heart, Star, Plus, Minus } from "lucide-react-native";
 import { useRouter } from "expo-router";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { useLocalSearchParams } from "expo-router";
+import { useMemo } from "react";
 
-export default function FoodDetailsScreen() {
+export default function FoodDetailsScreen({ route }) {
+  const [selectedItem, setSelectedItem] = useState(null); // currently selected menu item
+  const [modalVisible, setModalVisible] = useState(false);
+
   const router = useRouter();
-  const [counts, setCounts] = useState([0, 0, 0, 0]); // Counter for each pizza item
+  const { restaurant } = useLocalSearchParams(); // get params from URL/searchParams
+  const parsedRestaurant = useMemo(() => {
+    return restaurant ? JSON.parse(restaurant) : null;
+  }, [restaurant]);
+  const [counts, setCounts] = useState([]);
+
+  useEffect(() => {
+    if (parsedRestaurant?.menu?.length) {
+      setCounts(Array(parsedRestaurant.menu.length).fill(0));
+    }
+  }, [parsedRestaurant]);
+
+  const menuItems = parsedRestaurant?.menu || [];
 
   const updateCount = (index, delta) => {
     setCounts((prev) => {
@@ -32,13 +40,6 @@ export default function FoodDetailsScreen() {
     });
   };
 
-  const foodItems = Array(4).fill({
-    title: "Pizza",
-    description:
-      "Really convenient and the points system helps benefit loyalty. Vælg imellem, Ananas, bacon, chili",
-    price: "85,00 kr",
-  });
-
   return (
     <View style={styles.container}>
       <ScrollView
@@ -47,12 +48,12 @@ export default function FoodDetailsScreen() {
       >
         {/* HEADER IMAGE SECTION */}
         <ImageBackground
-          source={require("../../assets/resturant.png")}
+          source={{ uri: parsedRestaurant?.imageUrl }}
           style={styles.headerImage}
         >
-          <SafeAreaProvider style={styles.headerActions}>
+          <View style={styles.headerActions}>
             <TouchableOpacity
-              onPress={() => router.push("/search-results")}
+              onPress={() => router.back()}
               style={styles.iconCircle}
             >
               <ChevronLeft size={20} color="#000" />
@@ -62,15 +63,18 @@ export default function FoodDetailsScreen() {
             >
               <Heart size={20} color="#fff" fill="#fff" />
             </TouchableOpacity>
-          </SafeAreaProvider>
+          </View>
 
           <View style={styles.headerInfo}>
-            <Text style={styles.restaurantName}>McDonald’s</Text>
+            <Text style={styles.restaurantName}>{parsedRestaurant?.name}</Text>
             <View style={styles.ratingRow}>
               <Star size={16} color="#FFC529" fill="#FFC529" />
               <Text style={styles.ratingText}>
                 {" "}
-                4.5 <Text style={styles.reviewCount}>(30+)</Text>
+                {parsedRestaurant?.rating}{" "}
+                <Text style={styles.reviewCount}>
+                  ({parsedRestaurant?.reviewCount}+)
+                </Text>
               </Text>
               <TouchableOpacity>
                 <Text style={styles.seeReview}> See Review</Text>
@@ -81,12 +85,12 @@ export default function FoodDetailsScreen() {
 
         {/* FOOD ITEMS LIST */}
         <View style={styles.menuContainer}>
-          {foodItems.map((item, index) => (
+          {menuItems?.map((item, index) => (
             <View key={index} style={styles.foodCard}>
               <View style={styles.foodInfo}>
-                <Text style={styles.foodTitle}>{item.title}</Text>
+                <Text style={styles.foodTitle}>{item.name}</Text>
                 <Text style={styles.foodDesc}>{item.description}</Text>
-                <Text style={styles.foodPrice}>{item.price}</Text>
+                <Text style={styles.foodPrice}>${item.price}</Text>
               </View>
 
               <View style={styles.counterRow}>
@@ -104,6 +108,22 @@ export default function FoodDetailsScreen() {
                   <Plus size={18} color="#fff" />
                 </TouchableOpacity>
               </View>
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedItem(item);
+                  setModalVisible(true);
+                }}
+                style={{
+                  marginTop: 10,
+                  padding: 8,
+                  backgroundColor: "#FE724C",
+                  borderRadius: 12,
+                }}
+              >
+                <Text style={{ color: "#fff", fontWeight: "bold" }}>
+                  Add Add-ons
+                </Text>
+              </TouchableOpacity>
             </View>
           ))}
         </View>
@@ -126,16 +146,8 @@ export default function FoodDetailsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-
-    backgroundColor: "#fff",
-  },
-  headerImage: {
-    height: 188,
-    justifyContent: "space-between",
-    padding: 22,
-  },
+  container: { flex: 1, backgroundColor: "#fff" },
+  headerImage: { height: 188, justifyContent: "space-between", padding: 22 },
   headerActions: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -150,84 +162,42 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 5,
   },
-  headerInfo: {
-    fontFamily: "Adamina-Regular",
-  },
+  headerInfo: {},
   restaurantName: {
     fontSize: 36,
     color: "#fff",
     fontFamily: "Adamina-Regular",
     fontWeight: "400",
   },
-  ratingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 5,
-  },
-  ratingText: {
-    fontFamily: "Adamina-Regular",
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "400",
-  },
-  reviewCount: {
-    fontFamily: "Adamina-Regular",
-    color: "#eee",
-    fontWeight: "normal",
-  },
+  ratingRow: { flexDirection: "row", alignItems: "center", marginTop: 5 },
+  ratingText: { fontFamily: "Adamina-Regular", color: "#fff", fontSize: 14 },
+  reviewCount: { color: "#eee", fontWeight: "normal" },
   seeReview: {
-    fontFamily: "Adamina-Regular",
     color: "#FE724C",
     textDecorationLine: "underline",
     marginLeft: 10,
   },
-  menuContainer: {
-    padding: 20,
-  },
+  menuContainer: { padding: 20 },
   foodCard: {
     backgroundColor: "#fff",
-
     borderRadius: 20,
-
     padding: 15,
-
     marginBottom: 15,
-
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    boxShadow: "0 2px 13px rgba(184, 181, 181, 0.25)",
+    elevation: 5,
   },
-  foodInfo: {
-    flex: 1,
-    marginRight: 10,
-  },
-  foodTitle: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 18,
-    fontWeight: "400",
-    color: "#111719",
-  },
+  foodInfo: { flex: 1, marginRight: 10 },
+  foodTitle: { fontSize: 18, fontWeight: "400", color: "#111719" },
   foodDesc: {
-    fontFamily: "Adamina-Regular",
     fontSize: 11,
-
     color: "#9796A1",
-
     marginVertical: 5,
-
     lineHeight: 18,
   },
-  foodPrice: {
-    fontSize: 16,
-    color: "#FE724C",
-    fontWeight: "bold",
-  },
-  counterRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
+  foodPrice: { fontSize: 16, color: "#FE724C", fontWeight: "bold" },
+  counterRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   counterBtn: {
     width: 30,
     height: 30,
@@ -237,10 +207,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  countText: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
+  countText: { fontSize: 16, fontWeight: "bold" },
   bottomActions: {
     position: "absolute",
     bottom: 30,
@@ -254,30 +221,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#FE724C",
     flexDirection: "row",
     alignItems: "center",
-    // paddingVertical: 12,
     paddingHorizontal: 6,
     borderRadius: 30,
-    boxShadow: "0 10px 30px rgba(254, 114, 76, 0.2)",
+    elevation: 5,
   },
   cartIconCircle: {
     width: 40,
     height: 40,
     backgroundColor: "#fff",
-    display: "flex",
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 20,
     marginRight: 10,
   },
-  addToCartText: {
-    fontFamily: "Adamina-Regular",
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "400",
-    textTransform: "none",
-  },
-  logo: {
-    width: 16,
-    height: 17,
-  },
+  addToCartText: { color: "#fff", fontSize: 15, fontWeight: "400" },
+  logo: { width: 16, height: 17 },
 });

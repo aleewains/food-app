@@ -1,26 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { RestaurantGridCard, Search, Header } from "../../components/index";
 import { useRouter } from "expo-router";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchRestaurants } from "../../redux/restaurantSlice";
 
 export default function SearchResultsScreen() {
-  // 1. Mock Data
-  const rawData = Array(10)
-    .fill(null)
-    .map((_, index) => ({
-      id: index.toString(),
-      name: "Starbuck",
-      rating: 5.0,
-      deliveryTime: "10-15 mins",
-      imageUrl: require("../../assets/icons/logo.png"),
-      isVerified: true,
-      tags: ["Burger", "Pizza"],
-      isFavorite: false,
-    }));
+  const [search, setSearch] = useState("");
+  const dispatch = useDispatch();
+
+  const reduxRestaurants = useSelector((state) => state.restaurants.data);
+
+  useEffect(() => {
+    dispatch(fetchRestaurants()).then((res) => {
+      const dataWithTags = (res.payload || []).map((r) => {
+        const menuTags = r.menu?.map((item) => item.name) || [];
+        const uniqueTags = [...new Set(menuTags)];
+        return { ...r, tags: uniqueTags };
+      });
+
+      setRestaurantList(dataWithTags);
+    });
+  }, [dispatch]);
+
+  const [restaurantList, setRestaurantList] = useState(reduxRestaurants || []);
 
   const router = useRouter();
 
-  const [restaurantList, setRestaurantList] = useState(rawData);
+  const filteredRestaurants = restaurantList.filter((r) => {
+    const searchLower = search.toLowerCase();
+    return (
+      r.name.toLowerCase().includes(searchLower) ||
+      r.tags.some((tag) => tag.toLowerCase().includes(searchLower))
+    );
+  });
 
   const toggleFavorite = (id) => {
     setRestaurantList((prev) =>
@@ -32,23 +45,8 @@ export default function SearchResultsScreen() {
 
   // 2. Split data into two columns for the Masonry effect
   // We start the right column first so the left has room for the text
-  const leftColData = restaurantList.filter((_, i) => i % 2 === 0);
-  const rightColData = restaurantList.filter((_, i) => i % 2 !== 0);
-
-  useEffect(() => {
-    // Subscribe to the scroll event
-    const subscription = DeviceEventEmitter.addListener(
-      "SCROLL_TO_TOP",
-      (data) => {
-        if (data.tab === "home") {
-          scrollRef.current?.scrollTo({ y: 0, animated: true });
-        }
-      },
-    );
-
-    // Clean up listener when leaving the page
-    return () => subscription.remove();
-  }, []);
+  const leftColData = filteredRestaurants.filter((_, i) => i % 2 === 0);
+  const rightColData = filteredRestaurants.filter((_, i) => i % 2 !== 0);
 
   return (
     <View style={styles.container}>
@@ -59,7 +57,11 @@ export default function SearchResultsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <Search />
+        <Search
+          search={search}
+          setSearch={setSearch}
+          onFilterPress={() => {}}
+        />
 
         <View style={styles.masonryGrid}>
           {/* LEFT COLUMN */}
@@ -77,7 +79,14 @@ export default function SearchResultsScreen() {
                 <RestaurantGridCard
                   {...item}
                   onPressFavorite={() => toggleFavorite(item.id)}
-                  onPressCard={() => router.push("/FoodDetailsScreen")}
+                  onPressCard={() =>
+                    router.push({
+                      pathname: "/(main)/FoodDetailsScreen",
+                      params: {
+                        restaurant: JSON.stringify(item), // Must stringify object
+                      },
+                    })
+                  }
                 />
               </View>
             ))}
