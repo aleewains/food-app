@@ -5,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
@@ -23,7 +24,7 @@ const Login = () => {
       await signInWithEmailAndPassword(auth, email, password);
       router.replace("/"); //goes to home
     } catch (error) {
-      alert(error.message);
+      Alert.alert(error.message);
     }
   };
 

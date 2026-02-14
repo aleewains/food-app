@@ -1,14 +1,15 @@
 import { initializeApp } from "firebase/app";
+// @ts-ignore: getReactNativePersistence exists in the RN bundle
+// but is often missing from public TypeScript definitions.
 import {
   initializeAuth,
-  getReactNativePersistence,
-  getAuth,
+  Auth,
   browserLocalPersistence,
+  getReactNativePersistence,
 } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, Firestore } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
-
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -18,23 +19,15 @@ const firebaseConfig = {
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Auth based on Platform
-let auth;
-if (Platform.OS === "web") {
-  // Web specific persistence
-  auth = initializeAuth(app, {
-    persistence: browserLocalPersistence,
-  });
-} else {
-  // Mobile specific persistence (Android/iOS)
-  auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(AsyncStorage),
-  });
-}
+const auth: Auth = initializeAuth(app, {
+  persistence:
+    Platform.OS === "web"
+      ? browserLocalPersistence
+      : getReactNativePersistence(AsyncStorage),
+});
 
-const db = getFirestore(app);
+const db: Firestore = getFirestore(app);
 
 export { auth, db };

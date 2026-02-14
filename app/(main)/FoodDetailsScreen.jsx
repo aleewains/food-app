@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -7,30 +7,72 @@ import {
   ScrollView,
   TouchableOpacity,
   ImageBackground,
+  Alert,
 } from "react-native";
 import { ChevronLeft, Heart, Star, Plus, Minus } from "lucide-react-native";
-import { useRouter } from "expo-router";
-import { useLocalSearchParams } from "expo-router";
-import { useMemo } from "react";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import FoodDetailModal from "../../components/FoodDetailModal";
+import { useDispatch, useSelector } from "react-redux";
+import { addToCart, clearCart, clearError } from "../../redux/cartSlice";
 
-export default function FoodDetailsScreen({ route }) {
-  const [selectedItem, setSelectedItem] = useState(null); // currently selected menu item
+export default function FoodDetailsScreen() {
+  const [selectedItem, setSelectedItem] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [selectedAddon, setSelectedAddon] = useState(null);
+  const [counts, setCounts] = useState([]);
+
+  const dispatch = useDispatch();
+
+  const { items, error } = useSelector((state) => state.cart);
+  useEffect(() => {
+    if (error) {
+      Alert.alert(
+        "Cart Error",
+        error,
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+            onPress: () => dispatch(clearError()), // just clear the error
+          },
+          {
+            text: "Clear Cart",
+            style: "destructive",
+            onPress: () => {
+              dispatch(clearError()); // clear the error
+              dispatch(clearCart()); // clear all items in cart
+              setCounts(Array(menuItems.length).fill(0)); // reset counters
+              setSelectedItem(null); // reset selected item
+              setSelectedAddon(null); // reset selected addon
+            },
+          },
+        ],
+        { cancelable: true },
+      );
+    }
+  }, [error]);
 
   const router = useRouter();
-  const { restaurant } = useLocalSearchParams(); // get params from URL/searchParams
+  const { restaurant } = useLocalSearchParams();
+
   const parsedRestaurant = useMemo(() => {
     return restaurant ? JSON.parse(restaurant) : null;
   }, [restaurant]);
-  const [counts, setCounts] = useState([]);
+
+  const menuItems = parsedRestaurant?.menu || [];
 
   useEffect(() => {
     if (parsedRestaurant?.menu?.length) {
+      // Initialize counts per menu item
       setCounts(Array(parsedRestaurant.menu.length).fill(0));
     }
   }, [parsedRestaurant]);
 
-  const menuItems = parsedRestaurant?.menu || [];
+  useEffect(() => {
+    if (modalVisible) {
+      setSelectedAddon(null); // reset selected addon when modal opens
+    }
+  }, [modalVisible]);
 
   const updateCount = (index, delta) => {
     setCounts((prev) => {
@@ -40,13 +82,72 @@ export default function FoodDetailsScreen({ route }) {
     });
   };
 
+  const handleAddToCart = () => {
+    if (!parsedRestaurant) return;
+
+    const itemsToAdd = menuItems
+      .map((item, index) => {
+        if (counts[index] === 0) return null;
+
+        const selectedAddonObj =
+          selectedItem && selectedAddon !== null
+            ? selectedItem.addOns[selectedAddon]
+            : null;
+
+        const addonsArray = selectedAddonObj ? [selectedAddonObj] : [];
+
+        const newItem = {
+          cartItemId: `${item.id}-${Date.now()}-${Math.random()}`,
+          productId: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: counts[index],
+          addons: addonsArray.map((a) => ({
+            id: a.id,
+            name: a.name,
+            price: a.price,
+          })),
+          restaurantId: parsedRestaurant.id,
+          restaurantName: parsedRestaurant.name,
+        };
+
+        // Calculate total
+        newItem.total =
+          newItem.quantity *
+          (newItem.price + newItem.addons.reduce((sum, a) => sum + a.price, 0));
+
+        // Generate cartKey so cartSlice dedup works immediately
+        newItem.cartKey =
+          newItem.productId +
+          "-" +
+          (newItem.addons
+            .map((a) => a.id)
+            .sort()
+            .join("-") || "");
+
+        return newItem;
+      })
+      .filter(Boolean);
+
+    if (itemsToAdd.length === 0) return;
+
+    itemsToAdd.forEach((item) => {
+      dispatch(addToCart(item));
+    });
+
+    // Reset counters & addon selection
+    setCounts(Array(menuItems.length).fill(0));
+    setSelectedAddon(null);
+    setSelectedItem(null);
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
       >
-        {/* HEADER IMAGE SECTION */}
+        {/* HEADER IMAGE */}
         <ImageBackground
           source={{ uri: parsedRestaurant?.imageUrl }}
           style={styles.headerImage}
@@ -83,9 +184,9 @@ export default function FoodDetailsScreen({ route }) {
           </View>
         </ImageBackground>
 
-        {/* FOOD ITEMS LIST */}
+        {/* MENU ITEMS */}
         <View style={styles.menuContainer}>
-          {menuItems?.map((item, index) => (
+          {menuItems.map((item, index) => (
             <View key={index} style={styles.foodCard}>
               <View style={styles.foodInfo}>
                 <Text style={styles.foodTitle}>{item.name}</Text>
@@ -93,45 +194,54 @@ export default function FoodDetailsScreen({ route }) {
                 <Text style={styles.foodPrice}>${item.price}</Text>
               </View>
 
-              <View style={styles.counterRow}>
+              <View style={styles.actions}>
+                <View style={styles.counterRow}>
+                  <TouchableOpacity
+                    onPress={() => updateCount(index, -1)}
+                    style={styles.counterBtn}
+                  >
+                    <Minus size={18} color="#FE724C" />
+                  </TouchableOpacity>
+                  <Text style={styles.countText}>{counts[index]}</Text>
+                  <TouchableOpacity
+                    onPress={() => updateCount(index, 1)}
+                    style={[styles.counterBtn, { backgroundColor: "#FE724C" }]}
+                  >
+                    <Plus size={18} color="#fff" />
+                  </TouchableOpacity>
+                </View>
+
                 <TouchableOpacity
-                  onPress={() => updateCount(index, -1)}
-                  style={styles.counterBtn}
+                  onPress={() => {
+                    setSelectedItem(item);
+                    setModalVisible(true);
+                  }}
+                  style={{
+                    marginTop: 10,
+                    padding: 8,
+                    backgroundColor: "#FE724C",
+                    borderRadius: 12,
+                  }}
                 >
-                  <Minus size={18} color="#FE724C" />
-                </TouchableOpacity>
-                <Text style={styles.countText}>{counts[index]}</Text>
-                <TouchableOpacity
-                  onPress={() => updateCount(index, 1)}
-                  style={[styles.counterBtn, { backgroundColor: "#FE724C" }]}
-                >
-                  <Plus size={18} color="#fff" />
+                  <Text
+                    style={{
+                      fontFamily: "Adamina-Regular",
+                      color: "#fff",
+                      fontWeight: "400",
+                    }}
+                  >
+                    Add Add-ons
+                  </Text>
                 </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                onPress={() => {
-                  setSelectedItem(item);
-                  setModalVisible(true);
-                }}
-                style={{
-                  marginTop: 10,
-                  padding: 8,
-                  backgroundColor: "#FE724C",
-                  borderRadius: 12,
-                }}
-              >
-                <Text style={{ color: "#fff", fontWeight: "bold" }}>
-                  Add Add-ons
-                </Text>
-              </TouchableOpacity>
             </View>
           ))}
         </View>
       </ScrollView>
 
-      {/* FLOATING ADD TO CART BUTTON */}
+      {/* ADD TO CART BUTTON */}
       <View style={styles.bottomActions}>
-        <TouchableOpacity style={styles.addToCartBtn}>
+        <TouchableOpacity style={styles.addToCartBtn} onPress={handleAddToCart}>
           <View style={styles.cartIconCircle}>
             <Image
               source={require("../../assets/icons/cart.png")}
@@ -141,6 +251,15 @@ export default function FoodDetailsScreen({ route }) {
           <Text style={styles.addToCartText}>Add to cart</Text>
         </TouchableOpacity>
       </View>
+
+      <FoodDetailModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        selectedItem={selectedItem}
+        selectedAddon={selectedAddon}
+        setSelectedAddon={setSelectedAddon}
+        styles={styles}
+      />
     </View>
   );
 }
@@ -153,9 +272,10 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 10,
   },
+
   iconCircle: {
-    width: 40,
-    height: 40,
+    width: 38,
+    height: 38,
     borderRadius: 12,
     backgroundColor: "#fff",
     justifyContent: "center",
@@ -173,6 +293,7 @@ const styles = StyleSheet.create({
   ratingText: { fontFamily: "Adamina-Regular", color: "#fff", fontSize: 14 },
   reviewCount: { color: "#eee", fontWeight: "normal" },
   seeReview: {
+    fontFamily: "Adamina-Regular",
     color: "#FE724C",
     textDecorationLine: "underline",
     marginLeft: 10,
@@ -186,18 +307,36 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    elevation: 5,
+    boxShadow: "0 2px 13px rgba(184, 181, 181, 0.25)",
   },
   foodInfo: { flex: 1, marginRight: 10 },
-  foodTitle: { fontSize: 18, fontWeight: "400", color: "#111719" },
+  foodTitle: {
+    fontFamily: "Adamina-Regular",
+    fontSize: 18,
+    fontWeight: "400",
+    color: "#111719",
+  },
   foodDesc: {
+    fontFamily: "Adamina-Regular",
     fontSize: 11,
     color: "#9796A1",
     marginVertical: 5,
     lineHeight: 18,
   },
-  foodPrice: { fontSize: 16, color: "#FE724C", fontWeight: "bold" },
-  counterRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  foodPrice: {
+    fontFamily: "Adamina-Regular",
+    fontSize: 16,
+    color: "#FE724C",
+    fontWeight: "400",
+  },
+  actions: {
+    flexDirection: "column",
+  },
+  counterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
   counterBtn: {
     width: 30,
     height: 30,
@@ -207,7 +346,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  countText: { fontSize: 16, fontWeight: "bold" },
+  countText: { fontFamily: "Adamina-Regular", fontSize: 16, fontWeight: "400" },
   bottomActions: {
     position: "absolute",
     bottom: 30,
@@ -223,7 +362,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 6,
     borderRadius: 30,
-    elevation: 5,
+    boxShadow: "0 0px 10px rgba(254, 114, 76, 0.2)",
   },
   cartIconCircle: {
     width: 40,
@@ -234,6 +373,42 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginRight: 10,
   },
-  addToCartText: { color: "#fff", fontSize: 15, fontWeight: "400" },
+  addToCartText: {
+    fontFamily: "Adamina-Regular",
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "400",
+  },
   logo: { width: 16, height: 17 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContainer: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: "70%",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  addonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 10,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#ccc",
+  },
+  closeModalBtn: {
+    backgroundColor: "#FE724C",
+    padding: 15,
+    borderRadius: 15,
+    marginTop: 15,
+    alignItems: "center",
+  },
 });

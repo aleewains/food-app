@@ -63,7 +63,10 @@ export default function CustomDrawer({ navigation }) {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.item} onPress={() => router.push("")}>
+      <TouchableOpacity
+        style={styles.item}
+        onPress={() => router.push("/drawer/myOrders")}
+      >
         <View style={styles.drawerItems}>
           <Image source={orders} style={styles.icon} />
           <Text style={styles.itemText}>My Orders</Text>

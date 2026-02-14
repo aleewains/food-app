@@ -1,23 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Drawer } from "expo-router/drawer";
+import { View, StyleSheet, DeviceEventEmitter } from "react-native";
+import { usePathname, router, useNavigation } from "expo-router";
 import CustomDrawer from "../../components/CustomDrawer";
-import { View, StyleSheet } from "react-native";
 import BottomNav from "../../components/BottomNav";
-import { router, usePathname } from "expo-router";
-import Header from "../../components/Header";
-import { DeviceEventEmitter } from "react-native";
 
 export default function MainLayout() {
   const pathname = usePathname();
+  const navigation = useNavigation(); // Get the navigation object
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Logic to determine which tab is active based on the URL
+  // Listen for drawer state changes
+  useEffect(() => {
+    // These specific events fire exactly when the drawer starts opening/closing
+    const unsubscribeOpen = navigation.addListener("drawerOpen", () => {
+      setIsDrawerOpen(true);
+    });
+
+    const unsubscribeClose = navigation.addListener("drawerClose", () => {
+      setIsDrawerOpen(false);
+    });
+
+    return () => {
+      unsubscribeOpen();
+      unsubscribeClose();
+    };
+  }, [navigation]);
+  // Check for an exact match for the home path
+  const isHome = pathname === "/" || pathname === "/index";
+
   const activeTab = pathname.includes("favorite")
     ? "favorite"
     : pathname.includes("cart")
       ? "cart"
       : pathname.includes("location")
         ? "location"
-        : "home";
+        : isHome
+          ? "home"
+          : "";
   return (
     <View style={styles.outerContainer}>
       <View style={styles.drawerWrapper}>
@@ -25,14 +45,9 @@ export default function MainLayout() {
           drawerContent={(props) => <CustomDrawer {...props} />}
           screenOptions={{
             headerShown: false,
-            drawerStyle: {
-              width: "50%",
-              backgroundColor: "#fff", // Important for seeing the background
-            },
-            sceneContainerStyle: {
-              backgroundColor: "#fff",
-            },
-            overlayColor: "transparent",
+            drawerStyle: { width: "50%", backgroundColor: "#fff" },
+            sceneContainerStyle: { backgroundColor: "#fff" },
+            overlayColor: "rgba(0,0,0,0.4)", // Dimming helps the visual transition
           }}
         >
           <Drawer.Screen name="index" options={{ title: "Home" }} />
@@ -47,17 +62,20 @@ export default function MainLayout() {
           <Drawer.Screen name="screens/cart" options={{ title: "Cart" }} />
         </Drawer>
       </View>
-      <BottomNav
-        activeTab={activeTab}
-        onChange={(tab) => {
-          const route = tab === "home" ? "/" : `/screens/${tab}`;
-          router.push(route);
-        }}
-        onReselect={(tab) => {
-          // Emit a global event that the current page can listen for
-          DeviceEventEmitter.emit("SCROLL_TO_TOP", { tab });
-        }}
-      />
+
+      {/* Conditionally hide the BottomNav based on state */}
+      {!isDrawerOpen && (
+        <BottomNav
+          activeTab={activeTab}
+          onChange={(tab) => {
+            const route = tab === "home" ? "/" : `/screens/${tab}`;
+            router.push(route);
+          }}
+          onReselect={(tab) => {
+            DeviceEventEmitter.emit("SCROLL_TO_TOP", { tab });
+          }}
+        />
+      )}
     </View>
   );
 }
@@ -68,6 +86,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   drawerWrapper: {
-    flex: 1, // This forces the Drawer to take all available space, pushing the Nav down
+    flex: 1,
   },
 });

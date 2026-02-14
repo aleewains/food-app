@@ -9,13 +9,14 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
+  ImageBackground,
 } from "react-native";
-import { auth, db } from "../../../utils/firebase";
+import { auth, db } from "../../utils/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import * as ImagePicker from "expo-image-picker";
 import { Camera, ChevronLeft } from "lucide-react-native";
-import storageService from "../../../services/supabase";
-import CustomInput from "../../../components/CustomInput";
+import storageService from "../../services/supabase";
+import CustomInput from "../../components/CustomInput";
 import { CountryPicker } from "react-native-country-codes-picker";
 import { useRouter } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,7 +24,7 @@ import {
   fetchUserProfile,
   updateUserProfile,
   setUserData,
-} from "../../../redux/userSlice";
+} from "../../redux/userSlice";
 import { KeyboardAvoidingView, Platform } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -114,32 +115,32 @@ export default function ProfileScreen() {
 
   return (
     <KeyboardAvoidingView
+      style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 2} // adjust if you have headers
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0} // adjust if you have headers
     >
-      <View style={styles.mainWrapper}>
-        <View style={styles.orangeBg}>
-          <Image
-            source={require("../../../assets/profileBg.png")}
-            style={styles.bgImage}
-          />
-        </View>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        style={styles.container}
+        h
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.mainWrapper}>
+          <View style={styles.orangeBg} pointerEvents="none">
+            <Image
+              source={require("../../assets/profileBg.png")}
+              style={styles.bgImage}
+            />
+          </View>
 
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.iconCircle}
-          >
-            <ChevronLeft size={20} color="#000" />
-          </TouchableOpacity>
-        </View>
-        <ScrollView
-          keyboardShouldPersistTaps="handled"
-          style={styles.container}
-          h
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Header with Back Button */}
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={styles.iconCircle}
+            >
+              <ChevronLeft size={20} color="#000" />
+            </TouchableOpacity>
+          </View>
 
           {/* Profile Content */}
           <View style={styles.content}>
@@ -148,7 +149,7 @@ export default function ProfileScreen() {
                 source={
                   userData?.profileImage
                     ? { uri: userData.profileImage }
-                    : require("../../../assets/profile.png")
+                    : require("../../assets/profile.png")
                 }
                 style={styles.profileImage}
               />
@@ -220,28 +221,32 @@ export default function ProfileScreen() {
               )}
             </View>
           </View>
-        </ScrollView>
 
-        <CountryPicker
-          show={showPicker}
-          pickerButtonOnPress={(item) => {
-            setCountryCode(item.dial_code);
-            setShowPicker(false);
-          }}
-          style={{
-            modal: { height: 500 },
-          }}
-        />
-      </View>
+          <CountryPicker
+            show={showPicker}
+            pickerButtonOnPress={(item) => {
+              setCountryCode(item.dial_code);
+              setShowPicker(false);
+            }}
+            style={{
+              modal: { height: 500 },
+            }}
+          />
+        </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    // flex: 1,
+    // backgroundColor: "#984545",
+  },
   mainWrapper: {
-    flexGrow: 1,
-    height: "100%",
-    backgroundColor: "#fff",
+    // backgroundColor: "#984545",
+    flex: 1,
+    // height: "100%",
     position: "relative",
   },
   orangeBg: {
@@ -257,7 +262,7 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
   },
   header: {
-    marginTop: 40,
+    marginTop: 25,
     paddingHorizontal: 25,
     justifyContent: "center",
   },

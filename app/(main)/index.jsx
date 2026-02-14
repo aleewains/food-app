@@ -175,6 +175,14 @@ export default function HomeScreen() {
             isVerified={item.isVerified}
             imageUrl={{ uri: item.imageUrl }}
             tags={item.tags}
+            onPressCard={() =>
+              router.push({
+                pathname: "/(main)/FoodDetailsScreen",
+                params: {
+                  restaurant: JSON.stringify(item), // Must stringify object
+                },
+              })
+            }
             isFavorite={item.isFavorite}
             onPressFavorite={() => toggleFavorite(item.name)}
           />

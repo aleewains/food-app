@@ -8,27 +8,25 @@ import {
   profile,
 } from "react-native";
 import React, { useState, useEffect } from "react";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import userService from "../services/firebaseService";
+import { useRouter } from "expo-router";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchUserProfile } from "../redux/userSlice";
+import { ChevronLeft } from "lucide-react-native";
 
-const Header = () => {
-  const [userData, setUserData] = useState(null);
+const Header = ({
+  showBackButton = false,
+  title = "",
+  onBackPress = () => {},
+}) => {
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const { data: userData } = useSelector((state) => state.user);
 
   useEffect(() => {
-    fetchUserProfile();
+    dispatch(fetchUserProfile());
   }, []);
-  const fetchUserProfile = async () => {
-    try {
-      const data = await userService.getUserProfile();
-      if (data) {
-        setUserData(data);
-      }
-    } catch (error) {
-      //   console.log("Current user:", auth.currentUser);
-      console.log("Current Error:", error);
-    } finally {
-    }
-  };
 
   const adress = "4102 Prety View Lane";
   const profile = userData?.profileImage
@@ -36,47 +34,62 @@ const Header = () => {
     : require("../assets/profile.png");
 
   const navigation = useNavigation();
-  // Using a safer selector check to prevent crashes on initial render
+
   return (
     <View style={styles.header}>
+      {showBackButton ? (
+        <TouchableOpacity style={styles.sideBar} onPress={onBackPress}>
+          <ChevronLeft size={20} color="#000" />
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          style={styles.sideBar}
+          onPress={() => navigation.openDrawer()}
+        >
+          <View>
+            <View
+              style={{
+                width: 15,
+                height: 0,
+                backgroundColor: "black",
+                borderRadius: 12,
+                borderWidth: 1.3,
+                borderColor: "#111719",
+              }}
+            ></View>
+            <View
+              style={{
+                marginTop: 3,
+                width: 10,
+                height: 0,
+                borderRadius: 12,
+                borderWidth: 1.3,
+                borderColor: "#111719",
+              }}
+            ></View>
+          </View>
+        </TouchableOpacity>
+      )}
+
+      {title ? (
+        <Text style={{ fontSize: 18, fontWeight: "600" }}>{title}</Text>
+      ) : (
+        <View style={styles.deliverAdress}>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Text style={styles.deliverTo}>Deliver to</Text>
+            <Image
+              source={require("../assets/arrowDown.png")}
+              style={{ height: 5.25, width: 8 }}
+            />
+          </View>
+          <Text style={styles.adressTo}>{adress}</Text>
+        </View>
+      )}
+
       <TouchableOpacity
-        style={styles.sideBar}
-        onPress={() => navigation.openDrawer()}
+        style={styles.profilePhoto}
+        onPress={() => router.push("/drawer/myProfile")}
       >
-        <View>
-          <View
-            style={{
-              width: 15,
-              height: 0,
-              backgroundColor: "black",
-              borderRadius: 12,
-              borderWidth: 1.3,
-              borderColor: "#111719",
-            }}
-          ></View>
-          <View
-            style={{
-              marginTop: 3,
-              width: 10,
-              height: 0,
-              borderRadius: 12,
-              borderWidth: 1.3,
-              borderColor: "#111719",
-            }}
-          ></View>
-        </View>
-      </TouchableOpacity>
-      <View style={styles.deliverAdress}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Text style={styles.deliverTo}>Deliver to</Text>
-          <Image
-            source={require("../assets/arrowDown.png")}
-            style={{ height: 5.25, width: 8 }}
-          />
-        </View>
-        <Text style={styles.adressTo}>{adress}</Text>
-      </View>
-      <TouchableOpacity style={styles.profilePhoto}>
         <Image source={profile} style={styles.profileImage} />
       </TouchableOpacity>
     </View>
