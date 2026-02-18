@@ -7,6 +7,8 @@ import {
   where,
   orderBy,
   getDocs,
+  updateDoc,
+  doc,
 } from "firebase/firestore";
 const orderService = {
   createOrder: async (orderData) => {
@@ -14,19 +16,38 @@ const orderService = {
       const user = auth.currentUser;
       if (!user) throw new Error("No authenticated user found");
 
-      const orderRef = await addDoc(collection(db, "orders"), {
-        ...orderData,
+      // 1. SANITIZE THE DATA: Firestore hates 'undefined'
+      const cleanItems = (orderData.items || []).map((item) => ({
+        id: item.id || "",
+        name: item.name || "Unknown Item",
+        price: item.price || 0,
+        quantity: item.quantity || 1,
+        image: item.image || "",
+        // Ensure addons is ALWAYS an array, never undefined
+        addons: item.addons ?? [],
+        total: item.total || 0,
+      }));
+
+      // 2. BUILD THE FINAL OBJECT
+      const finalOrderData = {
+        restaurantId: orderData.restaurantId || "",
+        restaurantName: orderData.restaurantName || "Unknown Restaurant",
+        subtotal: orderData.subtotal || 0,
+        tax: orderData.tax || 0,
+        delivery: orderData.delivery || 0,
+        total: orderData.total || 0,
+        items: cleanItems, // Use the sanitized items
         userId: user.uid,
         status: "pending",
         createdAt: serverTimestamp(),
-      });
+      };
+
+      const orderRef = await addDoc(collection(db, "orders"), finalOrderData);
 
       return {
         id: orderRef.id,
-        ...orderData,
-        userId: user.uid,
-        status: "pending",
-        createdAt: new Date().toISOString(),
+        ...finalOrderData,
+        createdAt: new Date().toISOString(), // Serializable for Redux
       };
     } catch (error) {
       console.error("Error creating order:", error);
@@ -55,6 +76,26 @@ const orderService = {
       }));
     } catch (error) {
       console.error("Error fetching orders:", error);
+      throw error;
+    }
+  },
+  cancelOrder: async (orderId, cancellationData) => {
+    try {
+      const orderRef = doc(db, "orders", orderId);
+
+      const updateData = {
+        status: "cancelled",
+        cancellationDetails: {
+          reason: cancellationData.reason,
+          description: cancellationData.description,
+          cancelledAt: new Date().toISOString(),
+        },
+      };
+
+      await updateDoc(orderRef, updateData);
+      return updateData;
+    } catch (error) {
+      console.error("Error cancelling order:", error);
       throw error;
     }
   },

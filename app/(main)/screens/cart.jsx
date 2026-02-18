@@ -20,7 +20,7 @@ import {
 } from "../../../redux/cartSlice";
 import { useRouter } from "expo-router";
 import { Minus, Plus, X, ChevronLeft, Heart } from "lucide-react-native";
-import { createOrder } from "../../../redux/orderSlice";
+import { createOrder, clearOrder } from "../../../redux/orderSlice";
 
 export default function CartScreen() {
   const dispatch = useDispatch();
@@ -42,10 +42,23 @@ export default function CartScreen() {
   const handleCheckout = () => {
     if (cartItems.length === 0) return;
 
+    // Sanitize items to ensure no 'undefined' fields hit Firebase
+    const sanitizedItems = cartItems.map((item) => ({
+      id: item.id || "",
+      cartItemId: item.cartItemId,
+      name: item.name || "",
+      price: item.price || 0,
+      quantity: item.quantity || 1,
+      total: item.total || 0,
+      image: item.image || "",
+      // This is the critical fix for your previous error:
+      addons: item.addons ?? [],
+    }));
+
     const order = {
       restaurantId: cartItems[0].restaurantId,
       restaurantName: cartItems[0].restaurantName,
-      items: cartItems,
+      items: sanitizedItems,
       subtotal,
       tax,
       delivery,
@@ -58,7 +71,8 @@ export default function CartScreen() {
   useEffect(() => {
     if (currentOrder) {
       dispatch(clearCart());
-      router.push("/order-confirmation");
+      router.replace("/drawer/myOrders");
+      dispatch(clearOrder());
     }
   }, [currentOrder, dispatch, router]);
   useEffect(() => {

@@ -22,10 +22,25 @@ export const fetchOrders = createAsyncThunk(
     }
   },
 );
+export const cancelOrder = createAsyncThunk(
+  "order/cancelOrder",
+  async ({ orderId, reason, description }, { rejectWithValue }) => {
+    try {
+      const updateData = await orderService.cancelOrder(orderId, {
+        reason,
+        description,
+      });
+      return { orderId, ...updateData };
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  },
+);
 const orderSlice = createSlice({
   name: "order",
   initialState: {
     currentOrder: null,
+    orders: [],
     loading: false,
     error: null,
   },
@@ -57,6 +72,27 @@ const orderSlice = createSlice({
         state.orders = action.payload;
       })
       .addCase(fetchOrders.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(cancelOrder.pending, (state) => {
+        state.loading = true;
+      });
+    builder
+      .addCase(cancelOrder.fulfilled, (state, action) => {
+        state.loading = false;
+        const index = state.orders.findIndex(
+          (o) => o.id === action.payload.orderId,
+        );
+        if (index !== -1) {
+          // This will automatically move the order from "Upcoming" to "History"
+          // because your screen filters by status
+          state.orders[index].status = "cancelled";
+          state.orders[index].cancellationDetails =
+            action.payload.cancellationDetails;
+        }
+      })
+      .addCase(cancelOrder.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

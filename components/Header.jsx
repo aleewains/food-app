@@ -15,11 +15,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchUserProfile } from "../redux/userSlice";
 import { ChevronLeft } from "lucide-react-native";
 
-const Header = ({
-  showBackButton = false,
-  title = "",
-  onBackPress = () => {},
-}) => {
+const Header = ({ showBackButton = false, title = "", onBackPress = null }) => {
   const router = useRouter();
   const dispatch = useDispatch();
   const { data: userData } = useSelector((state) => state.user);
@@ -35,10 +31,23 @@ const Header = ({
 
   const navigation = useNavigation();
 
+  const handleBack = () => {
+    // If a custom onBackPress was passed (like from a parent screen), use it
+    if (onBackPress) {
+      onBackPress();
+    } else if (router.canGoBack()) {
+      // If the router says we can go back, do it
+      router.back();
+    } else {
+      // FALLBACK: If there's no history, send them to the main screen
+      router.replace("/index");
+    }
+  };
+
   return (
     <View style={styles.header}>
       {showBackButton ? (
-        <TouchableOpacity style={styles.sideBar} onPress={onBackPress}>
+        <TouchableOpacity style={styles.sideBar} onPress={handleBack}>
           <ChevronLeft size={20} color="#000" />
         </TouchableOpacity>
       ) : (
@@ -72,7 +81,15 @@ const Header = ({
       )}
 
       {title ? (
-        <Text style={{ fontSize: 18, fontWeight: "600" }}>{title}</Text>
+        <Text
+          style={{
+            fontFamily: "Adamina-Regular",
+            fontSize: 18,
+            fontWeight: "600",
+          }}
+        >
+          {title}
+        </Text>
       ) : (
         <View style={styles.deliverAdress}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
