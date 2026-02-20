@@ -13,6 +13,7 @@ import userService from "../services/firebaseService";
 import { useRouter } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUserProfile } from "../redux/userSlice";
+import { fetchAddresses } from "../redux/addressSlice";
 import { ChevronLeft } from "lucide-react-native";
 
 const Header = ({ showBackButton = false, title = "", onBackPress = null }) => {
@@ -22,9 +23,12 @@ const Header = ({ showBackButton = false, title = "", onBackPress = null }) => {
 
   useEffect(() => {
     dispatch(fetchUserProfile());
+    dispatch(fetchAddresses());
   }, []);
 
-  const adress = "4102 Prety View Lane";
+  const { addresses } = useSelector((state) => state.address);
+  const currentAddress = addresses.find((a) => a.isDefault) || addresses[0];
+
   const profile = userData?.profileImage
     ? { uri: userData.profileImage }
     : require("../assets/profile.png");
@@ -39,7 +43,7 @@ const Header = ({ showBackButton = false, title = "", onBackPress = null }) => {
       // If the router says we can go back, do it
       router.back();
     } else {
-      // FALLBACK: If there's no history, send them to the main screen
+      //If there's no history, send them to the main screen
       router.replace("/index");
     }
   };
@@ -99,7 +103,9 @@ const Header = ({ showBackButton = false, title = "", onBackPress = null }) => {
               style={{ height: 5.25, width: 8 }}
             />
           </View>
-          <Text style={styles.adressTo}>{adress}</Text>
+          <Text style={styles.adressTo}>
+            {currentAddress ? currentAddress.street : "Select Address"}
+          </Text>
         </View>
       )}
 

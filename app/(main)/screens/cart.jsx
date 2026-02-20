@@ -51,7 +51,6 @@ export default function CartScreen() {
       quantity: item.quantity || 1,
       total: item.total || 0,
       image: item.image || "",
-      // This is the critical fix for your previous error:
       addons: item.addons ?? [],
     }));
 

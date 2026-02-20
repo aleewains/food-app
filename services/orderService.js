@@ -16,7 +16,7 @@ const orderService = {
       const user = auth.currentUser;
       if (!user) throw new Error("No authenticated user found");
 
-      // 1. SANITIZE THE DATA: Firestore hates 'undefined'
+      //  SANITIZE THE DATA: Firestore hates 'undefined'
       const cleanItems = (orderData.items || []).map((item) => ({
         id: item.id || "",
         name: item.name || "Unknown Item",
@@ -28,7 +28,7 @@ const orderService = {
         total: item.total || 0,
       }));
 
-      // 2. BUILD THE FINAL OBJECT
+      //  BUILD THE FINAL OBJECT
       const finalOrderData = {
         restaurantId: orderData.restaurantId || "",
         restaurantName: orderData.restaurantName || "Unknown Restaurant",

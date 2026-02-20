@@ -7,16 +7,31 @@ import {
   updateDoc,
   query,
   collection,
-  addDoc,
   deleteDoc,
   orderBy,
   serverTimestamp,
 } from "firebase/firestore";
+
 const RESTAURANTS_COLLECTION = "restaurants";
+
+/**
+ * HELPER: Converts Firestore Timestamps to plain numbers (milliseconds)
+ * to avoid Redux "Non-serializable value" errors.
+ */
+const sanitizeData = (data) => {
+  if (!data) return data;
+  const sanitized = { ...data };
+  for (const key in sanitized) {
+    if (sanitized[key] && typeof sanitized[key].toMillis === "function") {
+      sanitized[key] = sanitized[key].toMillis();
+    }
+  }
+  return sanitized;
+};
 
 const userService = {
   /**
-   * Fetch user profile data from Firestore
+   * Fetch user profile data
    */
   getUserProfile: async () => {
     try {
@@ -24,27 +39,19 @@ const userService = {
       if (!user) throw new Error("No authenticated user found");
 
       const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (userDoc.exists()) {
-        return userDoc.data();
-      } else {
-        return null;
-      }
+      return userDoc.exists() ? sanitizeData(userDoc.data()) : null;
     } catch (error) {
       console.error("Error in getUserProfile service:", error);
       throw error;
     }
   },
 
-  /**
-   * Update text-based profile fields
-   */
   updateUserProfile: async (data) => {
     try {
       const user = auth.currentUser;
       if (!user) throw new Error("No authenticated user found");
 
       const userRef = doc(db, "users", user.uid);
-      // We use setDoc with merge: true to create the doc if it doesn't exist
       await setDoc(userRef, data, { merge: true });
       return true;
     } catch (error) {
@@ -53,9 +60,6 @@ const userService = {
     }
   },
 
-  /**
-   * Specifically update the profile image URL
-   */
   updateProfileImage: async (url) => {
     try {
       const user = auth.currentUser;
@@ -68,47 +72,94 @@ const userService = {
     }
   },
 
-  fetchRestaurants: async (url) => {
+  fetchRestaurants: async () => {
     try {
       const q = query(
         collection(db, RESTAURANTS_COLLECTION),
         orderBy("createdAt", "desc"),
       );
       const querySnapshot = await getDocs(q);
-
       const restaurants = [];
 
       for (const restaurantDoc of querySnapshot.docs) {
-        const data = restaurantDoc.data();
+        const rawData = restaurantDoc.data();
+        const data = sanitizeData(rawData); // Sanitize the restaurant data
 
-        // Fetch menu sub-collection for each restaurant
         const menuSnapshot = await getDocs(
           collection(db, RESTAURANTS_COLLECTION, restaurantDoc.id, "menu"),
         );
         const menu = menuSnapshot.docs.map((mDoc) => ({
           id: mDoc.id,
-          ...mDoc.data(),
+          ...sanitizeData(mDoc.data()), // Sanitize each menu item
         }));
 
         restaurants.push({
           id: restaurantDoc.id,
-          name: data.name,
-          rating: data.rating,
-          reviewCount: data.reviewCount,
-          deliveryFee: data.deliveryFee,
-          deliveryTime: data.deliveryTime,
-          imageUrl: data.imageUrl,
-          logoUrl: data.logoUrl,
-          imagePath: data.imagePath,
-          tags: data.tags,
-          createdAt: data.createdAt?.toMillis?.() || Date.now(),
+          ...data,
           menu: menu,
         });
       }
-
       return restaurants;
     } catch (error) {
       console.error("Error fetching restaurants: ", error);
+      return [];
+    }
+  },
+
+  toggleFavorite: async (item, type) => {
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error("No authenticated user found");
+
+      const favRef = doc(db, "users", user.uid, "favorites", item.id);
+      const favDoc = await getDoc(favRef);
+
+      if (favDoc.exists()) {
+        await deleteDoc(favRef);
+        return { id: item.id, isFavorite: false };
+      } else {
+        // Prepare data for Firestore
+        const favData = {
+          // ...item,
+          id: item.id,
+          type: type,
+          addedAt: serverTimestamp(),
+        };
+        delete favData.menu;
+
+        await setDoc(favRef, favData);
+
+        // Return sanitized version for Redux (serverTimestamp won't be available yet, so use Date.now())
+        return {
+          ...favData,
+          addedAt: Date.now(),
+          id: item.id,
+          isFavorite: true,
+        };
+      }
+    } catch (error) {
+      console.error("Error in toggleFavorite service:", error);
+      throw error;
+    }
+  },
+
+  getFavorites: async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error("No authenticated user found");
+
+      const q = query(
+        collection(db, "users", user.uid, "favorites"),
+        orderBy("addedAt", "desc"),
+      );
+
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...sanitizeData(doc.data()), // Sanitize the timestamp "addedAt"
+      }));
+    } catch (error) {
+      console.error("Error fetching favorites:", error);
       return [];
     }
   },

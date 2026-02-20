@@ -133,6 +133,34 @@ export const deleteAddress = createAsyncThunk<
   }
 });
 
+export const setDefaultAddress = createAsyncThunk<
+  string,
+  string,
+  { rejectValue: string }
+>("address/setDefault", async (id, { rejectWithValue, getState }) => {
+  try {
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
+
+    const state = getState() as { address: AddressState };
+    const currentAddresses = state.address.addresses;
+
+    // Batch update: Reset others and set the new one
+    // In a production app, you might use a Firestore writeBatch here
+    for (const addr of currentAddresses) {
+      const addrRef = doc(db, "users", user.uid, "addresses", addr.id);
+      await updateDoc(addrRef, {
+        isDefault: addr.id === id,
+        updatedAt: serverTimestamp(),
+      });
+    }
+
+    return id;
+  } catch (error: any) {
+    return rejectWithValue(error.message);
+  }
+});
+
 /* =========================
    Slice
 ========================= */
@@ -190,6 +218,16 @@ const addressSlice = createSlice({
           state.addresses = state.addresses.filter(
             (addr) => addr.id !== action.payload,
           );
+        },
+      )
+
+      .addCase(
+        setDefaultAddress.fulfilled,
+        (state, action: PayloadAction<string>) => {
+          state.addresses = state.addresses.map((addr) => ({
+            ...addr,
+            isDefault: addr.id === action.payload,
+          }));
         },
       );
   },

@@ -29,7 +29,7 @@ import { router } from "expo-router";
 import { DeviceEventEmitter } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchRestaurants } from "../../redux/restaurantSlice";
-
+import { toggleFavorite, fetchFavorites } from "../../redux/favoriteSlice";
 const categories = [
   { title: "Burger", image: require("../../assets/slider/burger.png") },
   { title: "Donat", image: require("../../assets/slider/donat.png") },
@@ -80,11 +80,27 @@ export default function HomeScreen() {
     return matchCategory && matchSearch;
   });
 
-  const toggleFavorite = (name) => {
-    setRestaurantList((prev) =>
-      prev.map((r) =>
-        r.name === name ? { ...r, isFavorite: !r.isFavorite } : r,
-      ),
+  const { items: favoriteItems } = useSelector((state) => state.favorites);
+
+  useEffect(() => {
+    dispatch(fetchRestaurants());
+    dispatch(fetchFavorites()); // 2. Load favorites on mount
+  }, [dispatch]);
+
+  const isRestaurantFavorite = (id) => {
+    return favoriteItems.some((fav) => fav.id === id);
+  };
+
+  const handleToggleFavorite = (item) => {
+    // 4. Determine current state based on ID presence in favorites slice
+    const currentlyFavorite = isRestaurantFavorite(item.id);
+
+    // Pass the correct object and type
+    dispatch(
+      toggleFavorite({
+        item: { ...item, isFavorite: currentlyFavorite },
+        type: "restaurant",
+      }),
     );
   };
 
@@ -183,8 +199,8 @@ export default function HomeScreen() {
                 },
               })
             }
-            isFavorite={item.isFavorite}
-            onPressFavorite={() => toggleFavorite(item.name)}
+            isFavorite={isRestaurantFavorite(item.id)}
+            onPressFavorite={() => handleToggleFavorite(item)}
           />
         ))}
       </ScrollView>

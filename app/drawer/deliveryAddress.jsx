@@ -13,7 +13,11 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { ChevronLeft, Trash2, Pencil } from "lucide-react-native";
 import { auth, db } from "../../utils/firebase";
 import { collection, deleteDoc, doc, onSnapshot } from "firebase/firestore";
-import { fetchAddresses, deleteAddress } from "../../redux/addressSlice";
+import {
+  fetchAddresses,
+  deleteAddress,
+  setDefaultAddress,
+} from "../../redux/addressSlice";
 import { useSelector, useDispatch } from "react-redux";
 
 export default function DeliveryAddress() {
@@ -24,6 +28,14 @@ export default function DeliveryAddress() {
   useEffect(() => {
     dispatch(fetchAddresses());
   }, [dispatch]);
+
+  const handleSetDefault = async (id) => {
+    try {
+      await dispatch(setDefaultAddress(id)).unwrap();
+    } catch (e) {
+      Alert.alert("Error", "Could not update default address");
+    }
+  };
 
   const handleDelete = (id) => {
     Alert.alert("Delete Address", "Remove this address?", [
@@ -85,11 +97,32 @@ export default function DeliveryAddress() {
         ListEmptyComponent={
           <Text style={styles.emptyText}>No addresses added yet</Text>
         }
+        // ... inside your FlatList renderItem
         renderItem={({ item }) => (
-          <View style={styles.card}>
+          <TouchableOpacity
+            style={[
+              styles.card,
+              item.isDefault && styles.activeCard, // Highlight the card if it's default
+            ]}
+            onPress={() => handleSetDefault(item.id)}
+          >
+            {/* Selection Radio Button */}
+            <View style={styles.selectionContainer}>
+              <View
+                style={[
+                  styles.outerCircle,
+                  item.isDefault && styles.activeOuter,
+                ]}
+              >
+                {item.isDefault && <View style={styles.innerCircle} />}
+              </View>
+            </View>
+
             <View style={{ flex: 1 }}>
               <Text style={styles.name}>{item.fullName}</Text>
-              <Text style={styles.text}>{item.street}</Text>
+              <Text style={styles.text} numberOfLines={1}>
+                {item.street}
+              </Text>
               <Text style={styles.text}>{item.city}</Text>
             </View>
 
@@ -118,7 +151,7 @@ export default function DeliveryAddress() {
                 />
               </TouchableOpacity>
             </View>
-          </View>
+          </TouchableOpacity>
         )}
       />
 
@@ -240,5 +273,35 @@ const styles = StyleSheet.create({
     marginTop: 60,
     color: "#999",
     fontSize: 16,
+  },
+
+  // Add this to your styles object
+  activeCard: {
+    borderColor: "#FE724C",
+    borderWidth: 1.5,
+    backgroundColor: "#fff", // ensures it stays white
+  },
+  selectionContainer: {
+    marginRight: 15,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  outerCircle: {
+    height: 20,
+    width: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "#C4C4C4",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  activeOuter: {
+    borderColor: "#FE724C",
+  },
+  innerCircle: {
+    height: 10,
+    width: 10,
+    borderRadius: 5,
+    backgroundColor: "#FE724C",
   },
 });

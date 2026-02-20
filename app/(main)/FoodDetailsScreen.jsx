@@ -14,6 +14,8 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import FoodDetailModal from "../../components/FoodDetailModal";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart, clearCart, clearError } from "../../redux/cartSlice";
+import { toggleFavorite } from "../../redux/favoriteSlice";
+import ItemCard from "../../components/itemCard";
 
 export default function FoodDetailsScreen() {
   const [selectedItem, setSelectedItem] = useState(null);
@@ -22,8 +24,9 @@ export default function FoodDetailsScreen() {
   const [counts, setCounts] = useState([]);
 
   const dispatch = useDispatch();
-
   const { items, error } = useSelector((state) => state.cart);
+  const { items: favoriteItems } = useSelector((state) => state.favorites);
+
   useEffect(() => {
     if (error) {
       Alert.alert(
@@ -141,6 +144,20 @@ export default function FoodDetailsScreen() {
     setSelectedItem(null);
   };
 
+  const isRestFav = favoriteItems.some(
+    (fav) => fav.id === parsedRestaurant?.id,
+  );
+  const isFoodFav = (id) => favoriteItems.some((fav) => fav.id === id);
+  const handleToggleFavorite = (item, type) => {
+    const isFav = favoriteItems.some((fav) => fav.id === item.id);
+    dispatch(
+      toggleFavorite({
+        item: { ...item, isFavorite: isFav },
+        type,
+      }),
+    );
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -160,9 +177,16 @@ export default function FoodDetailsScreen() {
               <ChevronLeft size={20} color="#000" />
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.iconCircle, { backgroundColor: "#FE724C" }]}
+              onPress={() =>
+                handleToggleFavorite(parsedRestaurant, "restaurant")
+              }
+              style={[styles.iconCircle, { backgroundColor: "#fff" }]}
             >
-              <Heart size={20} color="#fff" fill="#fff" />
+              <Heart
+                size={20}
+                color={isRestFav ? "#FE724C" : "#FE724C"}
+                fill={isRestFav ? "#FE724C" : "transparent"}
+              />
             </TouchableOpacity>
           </View>
 
@@ -187,54 +211,20 @@ export default function FoodDetailsScreen() {
         {/* MENU ITEMS */}
         <View style={styles.menuContainer}>
           {menuItems.map((item, index) => (
-            <View key={index} style={styles.foodCard}>
-              <View style={styles.foodInfo}>
-                <Text style={styles.foodTitle}>{item.name}</Text>
-                <Text style={styles.foodDesc}>{item.description}</Text>
-                <Text style={styles.foodPrice}>${item.price}</Text>
-              </View>
-
-              <View style={styles.actions}>
-                <View style={styles.counterRow}>
-                  <TouchableOpacity
-                    onPress={() => updateCount(index, -1)}
-                    style={styles.counterBtn}
-                  >
-                    <Minus size={18} color="#FE724C" />
-                  </TouchableOpacity>
-                  <Text style={styles.countText}>{counts[index]}</Text>
-                  <TouchableOpacity
-                    onPress={() => updateCount(index, 1)}
-                    style={[styles.counterBtn, { backgroundColor: "#FE724C" }]}
-                  >
-                    <Plus size={18} color="#fff" />
-                  </TouchableOpacity>
-                </View>
-
-                <TouchableOpacity
-                  onPress={() => {
-                    setSelectedItem(item);
-                    setModalVisible(true);
-                  }}
-                  style={{
-                    marginTop: 10,
-                    padding: 8,
-                    backgroundColor: "#FE724C",
-                    borderRadius: 12,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontFamily: "Adamina-Regular",
-                      color: "#fff",
-                      fontWeight: "400",
-                    }}
-                  >
-                    Add Add-ons
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+            <ItemCard
+              key={item.id || index}
+              item={item}
+              count={counts[index]}
+              isFav={isFoodFav(item.id)}
+              onUpdateCount={(delta) => updateCount(index, delta)}
+              onToggleFav={() => handleToggleFavorite(item, "food")}
+              onAddOns={() => {
+                // If count is 0, we open the modal to pick add-ons
+                // This also handles the first "Add to cart" action
+                setSelectedItem(item);
+                setModalVisible(true);
+              }}
+            />
           ))}
         </View>
       </ScrollView>
@@ -320,7 +310,7 @@ const styles = StyleSheet.create({
     fontFamily: "Adamina-Regular",
     fontSize: 11,
     color: "#9796A1",
-    marginVertical: 5,
+    // marginVertical: 1,
     lineHeight: 18,
   },
   foodPrice: {
@@ -410,5 +400,88 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     marginTop: 15,
     alignItems: "center",
+  },
+  foodCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    position: "relative",
+    // Premium soft shadow
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  foodHeart: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    zIndex: 10,
+  },
+  foodInfo: { flex: 1, paddingRight: 10 },
+  foodTitle: {
+    fontFamily: "Adamina-Regular",
+    fontSize: 16,
+    color: "#111719",
+    fontWeight: "600",
+  },
+  foodDesc: {
+    fontFamily: "Adamina-Regular",
+    fontSize: 11,
+    color: "#9796A1",
+    marginBottom: 8,
+    lineHeight: 16,
+  },
+  foodPrice: {
+    fontFamily: "Adamina-Regular",
+    fontSize: 17,
+    color: "#FE724C",
+    fontWeight: "600",
+  },
+  actions: {
+    alignItems: "flex-end",
+    justifyContent: "center",
+  },
+  counterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F6F6F6", // Light background for counter
+    borderRadius: 20,
+    padding: 4,
+    marginBottom: 8,
+  },
+  counterBtn: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  countText: {
+    fontFamily: "Adamina-Regular",
+    fontSize: 14,
+    marginHorizontal: 8,
+    color: "#111719",
+  },
+  addOnButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 15,
+    backgroundColor: "rgba(254, 114, 76, 0.1)", // Subtle orange tint
+    borderWidth: 1,
+    borderColor: "#FE724C",
+  },
+  addOnText: {
+    fontFamily: "Adamina-Regular",
+    color: "#FE724C",
+    fontSize: 11,
+    fontWeight: "600",
   },
 });

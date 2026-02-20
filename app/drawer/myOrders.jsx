@@ -235,7 +235,13 @@ export default function OrdersScreen() {
   const renderHistory = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <View style={{ flex: 1, flexDirection: "row", gap: 12 }}>
+        <View
+          style={{
+            flex: 1,
+            flexDirection: "row",
+            gap: 12,
+          }}
+        >
           <View style={styles.logoBox}>
             <Image source={{ uri: item.logo }} style={styles.logo} />
           </View>
@@ -246,7 +252,16 @@ export default function OrdersScreen() {
             </Text>
           </View>
         </View>
-        <Text style={styles.orderId}>#{item.id}</Text>
+        <View
+          style={{
+            flexDirection: "column",
+            justifyContent: "space-between",
+            alignItems: "flex-end",
+          }}
+        >
+          <Text style={styles.orderId}>#{item.id}</Text>
+          <Text style={styles.price}>${item.total}</Text>
+        </View>
       </View>
 
       <View style={styles.statusRow}>
@@ -351,7 +366,7 @@ export default function OrdersScreen() {
                 <Text style={styles.sectionTitle}>Lasted Orders</Text>
                 {lastedOrders.map((item) => (
                   <View key={item.id}>
-                    {/* FIX HERE: Wrap the item in an object to match renderHistory's signature */}
+                    {/*  Wrap the item in an object to match renderHistory's signature */}
                     {renderHistory({ item })}
                   </View>
                 ))}
@@ -361,9 +376,11 @@ export default function OrdersScreen() {
           ListEmptyComponent={
             <Text
               style={{
+                fontSize: 18,
                 fontFamily: "Adamina-Regular",
                 textAlign: "center",
-                marginTop: 50,
+                marginTop: 20,
+                marginBottom: 20,
               }}
             >
               No orders found.
@@ -491,7 +508,7 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     flexDirection: "row",
-    // backgroundColor: "#bdb6b6",
+    // backgroundColor: "#d8d6d6",
     // justifyContent: "space-between",
   },
   logoBox: {
@@ -529,6 +546,12 @@ const styles = StyleSheet.create({
     fontFamily: "Adamina-Regular",
     color: "#FE724C",
     fontWeight: "600",
+  },
+  price: {
+    fontFamily: "Adamina-Regular",
+    color: "#FE724C",
+    fontWeight: "600",
+    fontSize: 16,
   },
 
   statusRow: {

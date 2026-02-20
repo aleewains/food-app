@@ -4,12 +4,17 @@ import { RestaurantGridCard, Search, Header } from "../../components/index";
 import { useRouter } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchRestaurants } from "../../redux/restaurantSlice";
+import {
+  toggleFavorite as toggleFavoriteAction,
+  fetchFavorites,
+} from "../../redux/favoriteSlice";
 
 export default function SearchResultsScreen() {
   const [search, setSearch] = useState("");
   const dispatch = useDispatch();
 
   const reduxRestaurants = useSelector((state) => state.restaurants.data);
+  const { items: favoriteItems } = useSelector((state) => state.favorites);
 
   useEffect(() => {
     dispatch(fetchRestaurants()).then((res) => {
@@ -21,7 +26,19 @@ export default function SearchResultsScreen() {
 
       setRestaurantList(dataWithTags);
     });
+    dispatch(fetchFavorites());
   }, [dispatch]);
+
+  const isFavorite = (id) => favoriteItems.some((fav) => fav.id === id);
+  const handleToggleFavorite = (item) => {
+    const currentlyFav = isFavorite(item.id);
+    dispatch(
+      toggleFavoriteAction({
+        item: { ...item, isFavorite: currentlyFav },
+        type: "restaurant",
+      }),
+    );
+  };
 
   const [restaurantList, setRestaurantList] = useState(reduxRestaurants || []);
 
@@ -78,7 +95,8 @@ export default function SearchResultsScreen() {
               <View key={item.id} style={styles.cardWrapper}>
                 <RestaurantGridCard
                   {...item}
-                  onPressFavorite={() => toggleFavorite(item.id)}
+                  isFavorite={isFavorite(item.id)} // Dynamic check from Redux
+                  onPressFavorite={() => handleToggleFavorite(item)}
                   onPressCard={() =>
                     router.push({
                       pathname: "/(main)/FoodDetailsScreen",
@@ -98,7 +116,8 @@ export default function SearchResultsScreen() {
               <View key={item.id} style={styles.cardWrapper}>
                 <RestaurantGridCard
                   {...item}
-                  onPressFavorite={() => toggleFavorite(item.id)}
+                  isFavorite={isFavorite(item.id)} // Dynamic check from Redux
+                  onPressFavorite={() => handleToggleFavorite(item)}
                   onPressCard={() => router.push("/FoodDetailsScreen")}
                 />
               </View>
