@@ -100,7 +100,7 @@ const RestaurantCard = ({
             position: "absolute",
             top: 12,
             right: 12,
-            backgroundColor: "#FE724C",
+            backgroundColor: "#fff",
             padding: 10,
             borderRadius: 100,
             elevation: 5,
@@ -108,8 +108,8 @@ const RestaurantCard = ({
         >
           <Heart
             size={20}
-            color={isFavorite ? "#FFFFFF" : "red"}
-            fill={isFavorite ? "#FFFFFF" : "red"}
+            color={isFavorite ? "#FE724C" : "#FE724C"}
+            fill={isFavorite ? "#FE724C" : "transparent"}
           />
         </TouchableOpacity>
       </View>

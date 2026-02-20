@@ -7,6 +7,7 @@ import {
   ScrollView,
   Image,
   StyleSheet,
+  TouchableWithoutFeedback,
 } from "react-native";
 const FoodDetailModal = ({
   visible,
@@ -22,65 +23,71 @@ const FoodDetailModal = ({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.modalFoodTitle}>{selectedItem?.name}</Text>
-              <Text style={styles.modalDescription}>
-                {selectedItem?.description}
-              </Text>
-            </View>
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={styles.modalOverlay}>
+          <TouchableWithoutFeedback>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalFoodTitle}>
+                    {selectedItem?.name}
+                  </Text>
+                  <Text style={styles.modalDescription}>
+                    {selectedItem?.description}
+                  </Text>
+                </View>
 
-            <Text style={styles.modalPrice}>${selectedItem?.price}</Text>
-          </View>
+                <Text style={styles.modalPrice}>${selectedItem?.price}</Text>
+              </View>
 
-          <Text style={styles.choiceTitle}>Choice of Add On</Text>
+              <Text style={styles.choiceTitle}>Choice of Add On</Text>
 
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {selectedItem?.addOns?.length > 0 ? (
-              selectedItem.addOns.map((addon, index) => {
-                const isSelected = selectedAddon === index;
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {selectedItem?.addOns?.length > 0 ? (
+                  selectedItem.addOns.map((addon, index) => {
+                    const isSelected = selectedAddon === index;
 
-                return (
-                  <TouchableOpacity
-                    key={index}
-                    style={styles.addonRow}
-                    onPress={() => setSelectedAddon(index)}
-                  >
-                    <View style={styles.addonLeft}>
-                      <Image
-                        source={{ uri: addon.image }}
-                        style={styles.addonImage}
-                      />
-                      <Text style={styles.font}>{addon.name}</Text>
-                    </View>
-
-                    <View style={styles.addonRight}>
-                      <Text style={styles.font}>+${addon.price}</Text>
-
-                      <View
-                        style={[
-                          styles.radioOuter,
-                          isSelected && styles.radioOuterActive,
-                        ]}
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.addonRow}
+                        onPress={() => setSelectedAddon(index)}
                       >
-                        {isSelected && <View style={styles.radioInner} />}
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })
-            ) : (
-              <Text style={{ color: "#888" }}>No add-ons available.</Text>
-            )}
-          </ScrollView>
+                        <View style={styles.addonLeft}>
+                          <Image
+                            source={{ uri: addon.image }}
+                            style={styles.addonImage}
+                          />
+                          <Text style={styles.font}>{addon.name}</Text>
+                        </View>
 
-          <TouchableOpacity style={styles.closeModalBtn} onPress={onClose}>
-            <Text style={styles.doneText}>Done</Text>
-          </TouchableOpacity>
+                        <View style={styles.addonRight}>
+                          <Text style={styles.font}>+${addon.price}</Text>
+
+                          <View
+                            style={[
+                              styles.radioOuter,
+                              isSelected && styles.radioOuterActive,
+                            ]}
+                          >
+                            {isSelected && <View style={styles.radioInner} />}
+                          </View>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })
+                ) : (
+                  <Text style={{ color: "#888" }}>No add-ons available.</Text>
+                )}
+              </ScrollView>
+
+              <TouchableOpacity style={styles.closeModalBtn} onPress={onClose}>
+                <Text style={styles.doneText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };

@@ -44,29 +44,31 @@ const ItemCard = ({
             {item.price}
           </Text>
 
-          <View style={styles.actions}>
-            {/* Counter Section */}
-            <View style={styles.counterGroup}>
-              <TouchableOpacity
-                onPress={() => onUpdateCount(-1)}
-                style={styles.btnSmall}
-              >
-                <Minus size={14} color="#FE724C" />
-              </TouchableOpacity>
-              <Text style={styles.countText}>{count}</Text>
-              <TouchableOpacity
-                onPress={() => onUpdateCount(1)}
-                style={[styles.btnSmall, styles.btnOrange]}
-              >
-                <Plus size={14} color="#fff" />
+          {onUpdateCount ? (
+            <View style={styles.actions}>
+              {/* Counter Section */}
+              <View style={styles.counterGroup}>
+                <TouchableOpacity
+                  onPress={() => onUpdateCount(-1)}
+                  style={styles.btnSmall}
+                >
+                  <Minus size={14} color="#FE724C" />
+                </TouchableOpacity>
+                <Text style={styles.countText}>{count}</Text>
+                <TouchableOpacity
+                  onPress={() => onUpdateCount(1)}
+                  style={[styles.btnSmall, styles.btnOrange]}
+                >
+                  <Plus size={14} color="#fff" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Add-ons Button */}
+              <TouchableOpacity onPress={onAddOns} style={styles.addonBtn}>
+                <Text style={styles.addonText}>+ Add-ons</Text>
               </TouchableOpacity>
             </View>
-
-            {/* Add-ons Button */}
-            <TouchableOpacity onPress={onAddOns} style={styles.addonBtn}>
-              <Text style={styles.addonText}>+ Add-ons</Text>
-            </TouchableOpacity>
-          </View>
+          ) : null}
         </View>
       </View>
     </View>
@@ -76,7 +78,7 @@ const ItemCard = ({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
-    borderRadius: 12,
+    borderRadius: 20,
     padding: 12,
     marginBottom: 20,
     flexDirection: "row",

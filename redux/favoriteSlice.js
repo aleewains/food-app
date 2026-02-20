@@ -52,15 +52,29 @@ const favoriteSlice = createSlice({
       })
 
       // Toggle Favorite Cases
-      .addCase(toggleFavorite.fulfilled, (state, action) => {
-        const { id, isFavorite } = action.payload;
-        if (isFavorite) {
-          // Add to local state if it's a new favorite
-          state.items.unshift(action.payload);
+      /* ---------------- Toggle Favorite Cases ---------------- */
+
+      .addCase(toggleFavorite.pending, (state, action) => {
+        // action.meta.arg contains the { item, type } you passed to the thunk
+        const { item, type } = action.meta.arg;
+        const exists = state.items.find((i) => i.id === item.id);
+
+        if (exists) {
+          // If it exists, remove it immediately (Optimistic Delete)
+          state.items = state.items.filter((i) => i.id !== item.id);
         } else {
-          // Remove from local state if it was un-favorited
-          state.items = state.items.filter((item) => item.id !== id);
+          // If it doesn't exist, add it immediately (Optimistic Add)
+          state.items.unshift({ ...item, type });
         }
+      })
+      .addCase(toggleFavorite.fulfilled, (state, action) => {
+        // We don't need to do anything here because the UI updated in 'pending'.
+        // But we can ensure state is perfectly synced if the server returned extra data.
+      })
+      .addCase(toggleFavorite.rejected, (state, action) => {
+        // IMPORTANT: If Firebase fails (no internet, etc.),
+        // you might want to alert the user or refresh the list to undo the change.
+        state.error = action.payload;
       });
   },
 });

@@ -171,7 +171,7 @@ export default function FoodDetailsScreen() {
         >
           <View style={styles.headerActions}>
             <TouchableOpacity
-              onPress={() => router.back()}
+              onPress={() => router.replace("/search-results")}
               style={styles.iconCircle}
             >
               <ChevronLeft size={20} color="#000" />

@@ -134,6 +134,16 @@ export default function HomeScreen() {
     return () => subscription.remove();
   }, []);
 
+  const RestaurantSkeleton = () => (
+    <View style={[styles.skeletonCard, { height: 229, marginBottom: 20 }]}>
+      <View style={styles.skeletonImage} />
+      <View style={{ padding: 15 }}>
+        <View style={styles.skeletonLine} />
+        <View style={[styles.skeletonLine, { width: "60%", marginTop: 10 }]} />
+      </View>
+    </View>
+  );
+
   return (
     <Animated.View style={[styles.wrapper, animatedStyle]}>
       <Header />
@@ -180,29 +190,32 @@ export default function HomeScreen() {
             />
           </TouchableOpacity>
         </View>
-        {filteredRestaurants.map((item, index) => (
-          <RestaurantCard
-            key={index}
-            name={item.name}
-            rating={item.rating}
-            reviewCount={item.reviewCount}
-            deliveryTime={item.deliveryTime}
-            deliveryFee={item.deliveryFee}
-            isVerified={item.isVerified}
-            imageUrl={{ uri: item.imageUrl }}
-            tags={item.tags}
-            onPressCard={() =>
-              router.push({
-                pathname: "/(main)/FoodDetailsScreen",
-                params: {
-                  restaurant: JSON.stringify(item), // Must stringify object
-                },
-              })
-            }
-            isFavorite={isRestaurantFavorite(item.id)}
-            onPressFavorite={() => handleToggleFavorite(item)}
-          />
-        ))}
+        {loading
+          ? // Show 3 skeletons while loading
+            [1, 2, 3].map((key) => <RestaurantSkeleton key={key} />)
+          : filteredRestaurants.map((item, index) => (
+              <RestaurantCard
+                key={index}
+                name={item.name}
+                rating={item.rating}
+                reviewCount={item.reviewCount}
+                deliveryTime={item.deliveryTime}
+                deliveryFee={item.deliveryFee}
+                isVerified={item.isVerified}
+                imageUrl={{ uri: item.imageUrl }}
+                tags={item.tags}
+                onPressCard={() =>
+                  router.push({
+                    pathname: "/(main)/FoodDetailsScreen",
+                    params: {
+                      restaurant: JSON.stringify(item), // Must stringify object
+                    },
+                  })
+                }
+                isFavorite={isRestaurantFavorite(item.id)}
+                onPressFavorite={() => handleToggleFavorite(item)}
+              />
+            ))}
       </ScrollView>
     </Animated.View>
   );
@@ -264,5 +277,20 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     lineHeight: "100%",
     color: "#F56844",
+  },
+  skeletonCard: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    overflow: "hidden",
+  },
+  skeletonImage: {
+    height: 136,
+    backgroundColor: "#f2f8fcee",
+  },
+  skeletonLine: {
+    height: 20,
+    width: "90%",
+    backgroundColor: "#f2f8fcee",
+    borderRadius: 4,
   },
 });

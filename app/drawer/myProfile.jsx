@@ -224,12 +224,19 @@ export default function ProfileScreen() {
 
           <CountryPicker
             show={showPicker}
+            onBackdropPress={() => setShowPicker(false)}
             pickerButtonOnPress={(item) => {
               setCountryCode(item.dial_code);
               setShowPicker(false);
             }}
             style={{
               modal: { height: 500 },
+              backdrop: {
+                backgroundColor: "",
+              },
+              line: {
+                backgroundColor: "#FE724C", // Matches your theme
+              },
             }}
           />
         </View>

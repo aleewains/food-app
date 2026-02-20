@@ -87,7 +87,9 @@ export default function SearchResultsScreen() {
             <View style={styles.resultsHeader}>
               <Text style={styles.resultsText}>
                 Found{"\n"}
-                <Text style={styles.countText}>56 results</Text>
+                <Text style={styles.countText}>
+                  {filteredRestaurants.length} results
+                </Text>
               </Text>
             </View>
 
@@ -118,7 +120,14 @@ export default function SearchResultsScreen() {
                   {...item}
                   isFavorite={isFavorite(item.id)} // Dynamic check from Redux
                   onPressFavorite={() => handleToggleFavorite(item)}
-                  onPressCard={() => router.push("/FoodDetailsScreen")}
+                  onPressCard={() =>
+                    router.push({
+                      pathname: "/(main)/FoodDetailsScreen",
+                      params: {
+                        restaurant: JSON.stringify(item), // Must stringify object
+                      },
+                    })
+                  }
                 />
               </View>
             ))}
