@@ -151,42 +151,64 @@ export default function CartScreen() {
         {/* Column 3: Empty Placeholder (Important for Balance) */}
         <View style={styles.headerRight} />
       </View>
+      <View style={{ flex: 1 }}>
+        <FlatList
+          style={{ flex: 1 }}
+          data={cartItems}
+          keyExtractor={(item) => item.cartItemId}
+          renderItem={renderItem}
+          contentContainerStyle={{
+            paddingHorizontal: 25,
+            paddingBottom: 20,
+          }}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyTitle}>Your cart is empty</Text>
+              <Text style={styles.emptySub}>
+                Looks like you haven’t added anything yet.
+              </Text>
 
-      <FlatList
-        data={cartItems}
-        keyExtractor={(item) => item.cartItemId}
-        renderItem={renderItem}
-        contentContainerStyle={{ paddingHorizontal: 25, paddingBottom: 20 }}
-        ListFooterComponent={
-          <>
-            {/* Promo Code Section */}
-            <View style={styles.promoContainer}>
-              <TextInput
-                placeholder="Promo Code"
-                placeholderTextColor="#C4C4C4"
-                style={styles.promoInput}
-              />
-              <TouchableOpacity style={styles.applyBtn}>
-                <Text style={styles.applyText}>Apply</Text>
+              <TouchableOpacity
+                style={styles.emptyBtn}
+                onPress={() => router.back()}
+              >
+                <Text style={styles.emptyBtnText}>Browse Food</Text>
               </TouchableOpacity>
             </View>
+          }
+        />
+        <View
+          style={{
+            paddingHorizontal: 25,
+            paddingBottom: 20,
+          }}
+        >
+          {/* Promo Code Section */}
+          <View style={styles.promoContainer}>
+            <TextInput
+              placeholder="Promo Code"
+              placeholderTextColor="#C4C4C4"
+              style={styles.promoInput}
+            />
+            <TouchableOpacity style={styles.applyBtn}>
+              <Text style={styles.applyText}>Apply</Text>
+            </TouchableOpacity>
+          </View>
 
-            {/* Summary */}
-            <View style={styles.summarySection}>
-              <Row label="Subtotal" value={subtotal} />
-              <Row label="Tax and Fees" value={tax} />
-              <Row label="Delivery" value={delivery} />
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>
-                  Total{" "}
-                  <Text style={styles.itemCount}>({cartCount} items)</Text>
-                </Text>
-                <Text style={styles.totalValue}>${total.toFixed(2)}</Text>
-              </View>
+          {/* Summary */}
+          <View style={styles.summarySection}>
+            <Row label="Subtotal" value={subtotal} />
+            <Row label="Tax and Fees" value={tax} />
+            <Row label="Delivery" value={delivery} />
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>
+                Total <Text style={styles.itemCount}>({cartCount} items)</Text>
+              </Text>
+              <Text style={styles.totalValue}>${total.toFixed(2)}</Text>
             </View>
-          </>
-        }
-      />
+          </View>
+        </View>
+      </View>
 
       <TouchableOpacity
         style={styles.checkoutBtn}
@@ -211,7 +233,11 @@ const Row = ({ label, value }) => (
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    flexDirection: "column",
+  },
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -278,6 +304,41 @@ const styles = StyleSheet.create({
 
     // Android Shadow
     elevation: 5,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 40,
+  },
+
+  emptyTitle: {
+    fontFamily: "Adamina-Regular",
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#111719",
+    marginBottom: 10,
+  },
+
+  emptySub: {
+    fontFamily: "Adamina-Regular",
+    fontSize: 14,
+    color: "#9796A1",
+    textAlign: "center",
+    marginBottom: 25,
+  },
+
+  emptyBtn: {
+    backgroundColor: "#FE724C",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+  },
+
+  emptyBtnText: {
+    fontFamily: "Adamina-Regular",
+    color: "#fff",
+    fontWeight: "600",
   },
   content: {
     // justifyContent: "space-between",

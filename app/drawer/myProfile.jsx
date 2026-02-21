@@ -235,7 +235,7 @@ export default function ProfileScreen() {
                 backgroundColor: "",
               },
               line: {
-                backgroundColor: "#FE724C", // Matches your theme
+                backgroundColor: "#FE724C",
               },
             }}
           />
