@@ -8,6 +8,7 @@ import {
   Animated,
   Easing,
   Dimensions,
+  DeviceEventEmitter,
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useSelector, useDispatch } from "react-redux";
@@ -105,12 +106,17 @@ export default function FavoritesScreen() {
     />
   );
 
+  const handleBack = () => {
+    // Instead of router.back(), we tell the PagerView to move to index 0 (Home)
+    DeviceEventEmitter.emit("CHANGE_TAB", { tab: "home" });
+  };
+
   return (
     <SafeAreaProvider style={styles.container}>
       <Header
         showBackButton={true}
         title="Favorites"
-        onBackPress={() => router.back()}
+        onBackPress={handleBack}
       />
 
       <View

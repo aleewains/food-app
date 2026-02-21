@@ -8,6 +8,7 @@ import { auth } from "../utils/firebase";
 import { store } from "../redux/store";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import * as Font from "expo-font"; //
 
@@ -106,10 +107,12 @@ export default function RootLayout() {
 
   // --- Render Logic ---
   return (
-    <Provider store={store}>
-      <StatusBar hidden={true} />
-      <Redirect href={initialRoute} />
-      <Slot />
-    </Provider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Provider store={store}>
+        <StatusBar hidden={true} />
+        <Redirect href={initialRoute} />
+        <Slot />
+      </Provider>
+    </GestureHandlerRootView>
   );
 }

@@ -104,19 +104,6 @@ export default function HomeScreen() {
     );
   };
 
-  const animatedStyle = useAnimatedStyle(() => {
-    const scale = interpolate(progress.value, [0, 1], [1, 0.75]);
-    const borderRadius = interpolate(progress.value, [0, 1], [0, 28]);
-    const translateX = interpolate(progress.value, [0, 1], [0, 300]);
-    return {
-      transform: [
-        { scale },
-        { translateX }, // this shifts the content
-      ],
-      borderRadius,
-    };
-  });
-
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -145,7 +132,7 @@ export default function HomeScreen() {
   );
 
   return (
-    <Animated.View style={[styles.wrapper, animatedStyle]}>
+    <View style={[styles.wrapper]}>
       <Header />
       <ScrollView
         ref={scrollRef}
@@ -217,7 +204,7 @@ export default function HomeScreen() {
               />
             ))}
       </ScrollView>
-    </Animated.View>
+    </View>
   );
 }
 

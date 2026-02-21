@@ -8,6 +8,7 @@ import {
   TextInput,
   Platform,
   Alert,
+  DeviceEventEmitter,
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -128,6 +129,11 @@ export default function CartScreen() {
     </View>
   );
 
+  const handleBack = () => {
+    // Instead of router.back(), we tell the PagerView to move to index 0 (Home)
+    DeviceEventEmitter.emit("CHANGE_TAB", { tab: "home" });
+  };
+
   return (
     <SafeAreaProvider style={styles.container}>
       {/* Custom Header */}
@@ -135,10 +141,7 @@ export default function CartScreen() {
       <View style={styles.header}>
         {/* Column 1: Back Button */}
         <View style={styles.headerLeft}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backBtn}
-          >
+          <TouchableOpacity onPress={handleBack} style={styles.backBtn}>
             <ChevronLeft size={22} color="#000" />
           </TouchableOpacity>
         </View>

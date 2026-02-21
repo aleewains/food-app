@@ -105,6 +105,7 @@ const RestaurantCard = ({
             borderRadius: 100,
             elevation: 5,
           }}
+          activeOpacity={0.9}
         >
           <Heart
             size={20}

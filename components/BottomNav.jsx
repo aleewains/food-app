@@ -1,5 +1,11 @@
 import { View, StyleSheet, Pressable, Image, Text } from "react-native";
 import { useSelector } from "react-redux";
+import React, { useEffect } from "react";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from "react-native-reanimated";
 
 const TABS = [
   { key: "home", icon: require("../assets/icons/compass.png") },
@@ -8,9 +14,28 @@ const TABS = [
   { key: "favorite", icon: require("../assets/icons/heart.png") },
 ];
 
+// Animated wrapper for each icon
+const AnimatedIcon = ({ isActive, children }) => {
+  const scale = useSharedValue(isActive ? 1.2 : 1);
+
+  useEffect(() => {
+    scale.value = withSpring(isActive ? 1.2 : 1, {
+      damping: 10,
+      stiffness: 150,
+    });
+  }, [isActive]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return <Animated.View style={animatedStyle}>{children}</Animated.View>;
+};
+
 export default function BottomNav({ activeTab, onChange, onReselect }) {
   const cartItems = useSelector((state) => state.cart.items);
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.container}>
@@ -22,22 +47,24 @@ export default function BottomNav({ activeTab, onChange, onReselect }) {
               key={tab.key}
               onPress={() => {
                 if (isActive && onReselect) {
-                  onReselect(tab.key); // Trigger scroll to top logic
+                  onReselect(tab.key);
                 } else {
                   onChange(tab.key);
                 }
               }}
               style={styles.item}
             >
-              <View style={[styles.iconWrapper, isActive && styles.activeIcon]}>
-                <Image
-                  source={tab.icon}
-                  style={[
-                    styles.icon,
-                    { tintColor: isActive ? "#FE724C" : "#C9C9CE" },
-                  ]}
-                />
-              </View>
+              <AnimatedIcon isActive={isActive}>
+                <View style={[styles.iconWrapper]}>
+                  <Image
+                    source={tab.icon}
+                    style={[
+                      styles.icon,
+                      { tintColor: isActive ? "#FE724C" : "#C9C9CE" },
+                    ]}
+                  />
+                </View>
+              </AnimatedIcon>
 
               {tab.key === "cart" && cartCount > 0 && (
                 <View style={styles.badge}>
@@ -56,48 +83,29 @@ const styles = StyleSheet.create({
   wrapper: {
     bottom: 20,
   },
-
   container: {
     flexDirection: "row",
     justifyContent: "space-between",
     backgroundColor: "#fff",
-    borderRadius: 0,
     paddingHorizontal: 25,
     paddingVertical: 14,
     height: 74,
-
-    // shadowColor: "#000",
-    // shadowOffset: { width: 0, height: 10 },
-    // shadowOpacity: 0.08,
-    // shadowRadius: 20,
-    // elevation: 15,
   },
-
   item: {
-    borderRightColor: "#e20e0e",
     width: 50,
     alignItems: "center",
     justifyContent: "center",
   },
-
   iconWrapper: {
-    // backgroundColor: "#FE724C",
     width: 42,
     height: 100,
-    // borderRadius: 21,
     alignItems: "center",
     justifyContent: "center",
   },
-
-  activeIcon: {
-    // backgroundColor: "#FE724C",
-  },
-
   icon: {
     width: 25,
     height: 28,
   },
-
   badge: {
     position: "absolute",
     top: -6,
@@ -109,7 +117,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
   badgeText: {
     color: "#FFFFFF",
     fontSize: 12,

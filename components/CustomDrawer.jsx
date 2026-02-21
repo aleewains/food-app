@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     height: "100%",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#efefef",
     padding: 25,
   },
   profileSection: {

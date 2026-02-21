@@ -158,6 +158,20 @@ export default function FoodDetailsScreen() {
     );
   };
 
+  const { from } = useLocalSearchParams();
+
+  const handleBack = () => {
+    if (from === "search") {
+      // Force the router to go to MainPager with the search flag
+      router.push({
+        pathname: "/(main)/search-results",
+        params: { from: "search" },
+      });
+    } else {
+      router.back(); // Normal back for index
+    }
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -170,10 +184,7 @@ export default function FoodDetailsScreen() {
           style={styles.headerImage}
         >
           <View style={styles.headerActions}>
-            <TouchableOpacity
-              onPress={() => router.replace("/search-results")}
-              style={styles.iconCircle}
-            >
+            <TouchableOpacity onPress={handleBack} style={styles.iconCircle}>
               <ChevronLeft size={20} color="#000" />
             </TouchableOpacity>
             <TouchableOpacity
@@ -181,6 +192,7 @@ export default function FoodDetailsScreen() {
                 handleToggleFavorite(parsedRestaurant, "restaurant")
               }
               style={[styles.iconCircle, { backgroundColor: "#fff" }]}
+              activeOpacity={0.8}
             >
               <Heart
                 size={20}
@@ -248,7 +260,7 @@ export default function FoodDetailsScreen() {
         selectedItem={selectedItem}
         selectedAddon={selectedAddon}
         setSelectedAddon={setSelectedAddon}
-        styles={styles}
+        // styles={styles}
       />
     </View>
   );

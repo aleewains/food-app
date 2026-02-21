@@ -42,11 +42,12 @@ const RestaurantGridCard = ({
         <TouchableOpacity
           onPress={onPressFavorite}
           style={styles.favoriteButton}
+          // activeOpacity={0.9}
         >
           <Heart
-            size={18}
+            size={20}
             color={isFavorite ? "#FE724C" : "#D3D1D8"}
-            fill={isFavorite ? "#FE724C" : "#D3D1D8"}
+            fill={isFavorite ? "#FE724C" : "transparent"}
           />
         </TouchableOpacity>
       </View>

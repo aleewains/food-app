@@ -15,7 +15,7 @@ const ItemCard = ({
       {/* Favorite Heart */}
       <TouchableOpacity style={styles.heartAction} onPress={onToggleFav}>
         <Heart
-          size={18}
+          size={20}
           color={isFav ? "#FE724C" : "#D3D1D8"}
           fill={isFav ? "#FE724C" : "transparent"}
         />
