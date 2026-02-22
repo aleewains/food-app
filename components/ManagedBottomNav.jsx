@@ -1,6 +1,6 @@
 import React from "react";
 import { useDrawerStatus } from "@react-navigation/drawer";
-import BottomNav from "../../components/BottomNav";
+import BottomNav from "./BottomNav";
 import { router } from "expo-router";
 import { DeviceEventEmitter } from "react-native";
 

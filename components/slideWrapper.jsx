@@ -26,11 +26,7 @@ export default function SlideWrapper({ children }) {
 
   return (
     <View style={styles.container}>
-      <Animated.View
-        entering={SlideInRight.duration(400).damping(15)}
-        exiting={SlideOutLeft.duration(300)}
-        style={[styles.main, animatedStyle]}
-      >
+      <Animated.View style={[styles.main, animatedStyle]}>
         {children}
       </Animated.View>
     </View>

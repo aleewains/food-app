@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
-import { RestaurantGridCard, Search, Header } from "../../components/index";
+import { RestaurantGridCard, Search, Header } from "../../../components/index";
 import { useRouter } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchRestaurants } from "../../redux/restaurantSlice";
-import SlideWrapper from "../../components/slideWrapper";
+import { fetchRestaurants } from "../../../redux/restaurantSlice";
+import SlideWrapper from "../../../components/slideWrapper";
 import {
   toggleFavorite as toggleFavoriteAction,
   fetchFavorites,
-} from "../../redux/favoriteSlice";
+} from "../../../redux/favoriteSlice";
 
 export default function SearchResultsScreen() {
   const [search, setSearch] = useState("");
@@ -18,10 +18,10 @@ export default function SearchResultsScreen() {
   const { items: favoriteItems } = useSelector((state) => state.favorites);
   const router = useRouter();
 
-  useEffect(() => {
-    dispatch(fetchRestaurants());
-    dispatch(fetchFavorites());
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(fetchRestaurants());
+  //   dispatch(fetchFavorites());
+  // }, [dispatch]);
 
   const isFavorite = (id) => favoriteItems.some((fav) => fav.id === id);
 
@@ -55,10 +55,18 @@ export default function SearchResultsScreen() {
   const leftColData = filteredRestaurants.filter((_, i) => i % 2 === 0);
   const rightColData = filteredRestaurants.filter((_, i) => i % 2 !== 0);
 
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back(); // This will slide LEFT to RIGHT
+    } else {
+      router.replace("mainpager");
+    }
+  };
+
   return (
     <SlideWrapper>
       <View style={styles.container}>
-        <Header showBackButton={true} />
+        <Header showBackButton={true} onBackPress={handleBack} />
 
         {/* We use ScrollView for Masonry instead of FlatList */}
         <ScrollView
@@ -92,9 +100,9 @@ export default function SearchResultsScreen() {
                     onPressFavorite={() => handleToggleFavorite(item)}
                     onPressCard={() =>
                       router.push({
-                        pathname: "/(main)/FoodDetailsScreen",
+                        pathname: "/FoodDetailsScreen",
                         params: {
-                          restaurant: JSON.stringify(item), // Must stringify object
+                          restaurant: JSON.stringify(item),
                           from: "search",
                         },
                       })
@@ -114,7 +122,7 @@ export default function SearchResultsScreen() {
                     onPressFavorite={() => handleToggleFavorite(item)}
                     onPressCard={() =>
                       router.push({
-                        pathname: "/(main)/FoodDetailsScreen",
+                        pathname: "/FoodDetailsScreen",
                         params: {
                           restaurant: JSON.stringify(item), // Must stringify object
                           from: "search",

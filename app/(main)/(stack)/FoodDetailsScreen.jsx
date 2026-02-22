@@ -11,11 +11,13 @@ import {
 } from "react-native";
 import { ChevronLeft, Heart, Star, Plus, Minus } from "lucide-react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import FoodDetailModal from "../../components/FoodDetailModal";
+import FoodDetailModal from "../../../components/FoodDetailModal";
 import { useDispatch, useSelector } from "react-redux";
-import { addToCart, clearCart, clearError } from "../../redux/cartSlice";
-import { toggleFavorite } from "../../redux/favoriteSlice";
-import ItemCard from "../../components/itemCard";
+import { addToCart, clearCart, clearError } from "../../../redux/cartSlice";
+import { toggleFavorite } from "../../../redux/favoriteSlice";
+import ItemCard from "../../../components/itemCard";
+import SlideWrapper from "../../../components/slideWrapper";
+import { BottomNav } from "../../../components";
 
 export default function FoodDetailsScreen() {
   const [selectedItem, setSelectedItem] = useState(null);
@@ -24,7 +26,8 @@ export default function FoodDetailsScreen() {
   const [counts, setCounts] = useState([]);
 
   const dispatch = useDispatch();
-  const { items, error } = useSelector((state) => state.cart);
+  const { items, error } = useSelector((state) => state.review);
+
   const { items: favoriteItems } = useSelector((state) => state.favorites);
 
   useEffect(() => {
@@ -56,11 +59,12 @@ export default function FoodDetailsScreen() {
   }, [error]);
 
   const router = useRouter();
-  const { restaurant } = useLocalSearchParams();
-
-  const parsedRestaurant = useMemo(() => {
-    return restaurant ? JSON.parse(restaurant) : null;
-  }, [restaurant]);
+  const params = useLocalSearchParams();
+  // useState only initializes ONCE.
+  // It will keep the data even when params.restaurant becomes undefined during 'back'.
+  const [parsedRestaurant] = React.useState(() =>
+    params.restaurant ? JSON.parse(params.restaurant) : null,
+  );
 
   const menuItems = parsedRestaurant?.menu || [];
 
@@ -158,116 +162,156 @@ export default function FoodDetailsScreen() {
     );
   };
 
-  const { from } = useLocalSearchParams();
-
   const handleBack = () => {
-    if (from === "search") {
-      // Force the router to go to MainPager with the search flag
-      router.push({
-        pathname: "/(main)/search-results",
-        params: { from: "search" },
-      });
+    // Check if we can actually pop the stack
+    if (router.canGoBack()) {
+      router.back(); // This will slide the detail screen to the RIGHT (correct back animation)
     } else {
-      router.back(); // Normal back for index
+      // Only if the app was opened directly on this page, replace it with the home
+      router.replace("mainpager");
     }
   };
 
-  return (
-    <View style={styles.container}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
-      >
-        {/* HEADER IMAGE */}
-        <ImageBackground
-          source={{ uri: parsedRestaurant?.imageUrl }}
-          style={styles.headerImage}
-        >
-          <View style={styles.headerActions}>
-            <TouchableOpacity onPress={handleBack} style={styles.iconCircle}>
-              <ChevronLeft size={20} color="#000" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() =>
-                handleToggleFavorite(parsedRestaurant, "restaurant")
-              }
-              style={[styles.iconCircle, { backgroundColor: "#fff" }]}
-              activeOpacity={0.8}
-            >
-              <Heart
-                size={20}
-                color={isRestFav ? "#FE724C" : "#FE724C"}
-                fill={isRestFav ? "#FE724C" : "transparent"}
-              />
-            </TouchableOpacity>
-          </View>
+  const handleTabChangeFromDetails = (tabName) => {
+    // Instead of sliding a pager, we jump to the MainPager with the tab parameter
+    router.push({
+      pathname: "/(main)/(stack)/mainpager",
+      params: { tab: tabName },
+    });
+  };
 
-          <View style={styles.headerInfo}>
-            <Text style={styles.restaurantName}>{parsedRestaurant?.name}</Text>
-            <View style={styles.ratingRow}>
-              <Star size={16} color="#FFC529" fill="#FFC529" />
-              <Text style={styles.ratingText}>
-                {" "}
-                {parsedRestaurant?.rating}{" "}
-                <Text style={styles.reviewCount}>
-                  ({parsedRestaurant?.reviewCount}+)
-                </Text>
-              </Text>
-              <TouchableOpacity>
-                <Text style={styles.seeReview}> See Review</Text>
+  const restaurantReviews = useMemo(() => {
+    // Ensure the ID comparison matches types (string vs number)
+    return items.filter(
+      (review) => review?.restaurantId === parsedRestaurant.id,
+    );
+  }, [items]);
+
+  // 2. Calculate average
+  const averageRating = useMemo(() => {
+    if (restaurantReviews.length === 0) return 0;
+
+    const totalSum = restaurantReviews.reduce(
+      (sum, review) => sum + review.rating,
+      0,
+    );
+    const average = totalSum / restaurantReviews.length;
+
+    // Round to 1 decimal place (e.g., 4.5)
+    return Math.round(average * 10) / 10;
+  }, [restaurantReviews]);
+
+  return (
+    <SlideWrapper>
+      <View style={styles.container}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 100 }}
+        >
+          {/* HEADER IMAGE */}
+          <ImageBackground
+            source={{ uri: parsedRestaurant?.imageUrl }}
+            style={styles.headerImage}
+          >
+            <View style={styles.headerActions}>
+              <TouchableOpacity onPress={handleBack} style={styles.iconCircle}>
+                <ChevronLeft size={20} color="#000" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() =>
+                  handleToggleFavorite(parsedRestaurant, "restaurant")
+                }
+                style={[styles.iconCircle, { backgroundColor: "#fff" }]}
+                activeOpacity={0.8}
+              >
+                <Heart
+                  size={20}
+                  color={isRestFav ? "#FE724C" : "#FE724C"}
+                  fill={isRestFav ? "#FE724C" : "transparent"}
+                />
               </TouchableOpacity>
             </View>
-          </View>
-        </ImageBackground>
 
-        {/* MENU ITEMS */}
-        <View style={styles.menuContainer}>
-          {menuItems.map((item, index) => (
-            <ItemCard
-              key={item.id || index}
-              item={item}
-              count={counts[index]}
-              isFav={isFoodFav(item.id)}
-              onUpdateCount={(delta) => updateCount(index, delta)}
-              onToggleFav={() => handleToggleFavorite(item, "food")}
-              onAddOns={() => {
-                // If count is 0, we open the modal to pick add-ons
-                // This also handles the first "Add to cart" action
-                setSelectedItem(item);
-                setModalVisible(true);
-              }}
-            />
-          ))}
+            <View style={styles.headerInfo}>
+              <Text style={styles.restaurantName}>
+                {parsedRestaurant?.name}
+              </Text>
+              <View style={styles.ratingRow}>
+                <Star size={16} color="#FFC529" fill="#FFC529" />
+                <Text style={styles.ratingText}>
+                  {" "}
+                  {averageRating}{" "}
+                  <Text style={styles.reviewCount}>
+                    ({restaurantReviews.length}+)
+                  </Text>
+                </Text>
+                <TouchableOpacity
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(main)/(stack)/ReviewScreen",
+                      params: { restaurantId: parsedRestaurant?.id },
+                    })
+                  }
+                >
+                  <Text style={styles.seeReview}> See Review</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ImageBackground>
+
+          {/* MENU ITEMS */}
+          <View style={styles.menuContainer}>
+            {menuItems.map((item, index) => (
+              <ItemCard
+                key={item.id || index}
+                item={item}
+                count={counts[index]}
+                isFav={isFoodFav(item.id)}
+                onUpdateCount={(delta) => updateCount(index, delta)}
+                onToggleFav={() => handleToggleFavorite(item, "food")}
+                onAddOns={() => {
+                  // If count is 0, we open the modal to pick add-ons
+                  // This also handles the first "Add to cart" action
+                  setSelectedItem(item);
+                  setModalVisible(true);
+                }}
+              />
+            ))}
+          </View>
+        </ScrollView>
+
+        {/* ADD TO CART BUTTON */}
+        <View style={styles.bottomActions}>
+          <TouchableOpacity
+            style={styles.addToCartBtn}
+            onPress={handleAddToCart}
+          >
+            <View style={styles.cartIconCircle}>
+              <Image
+                source={require("../../../assets/icons/cart.png")}
+                style={styles.logo}
+              />
+            </View>
+            <Text style={styles.addToCartText}>Add to cart</Text>
+          </TouchableOpacity>
         </View>
-      </ScrollView>
 
-      {/* ADD TO CART BUTTON */}
-      <View style={styles.bottomActions}>
-        <TouchableOpacity style={styles.addToCartBtn} onPress={handleAddToCart}>
-          <View style={styles.cartIconCircle}>
-            <Image
-              source={require("../../assets/icons/cart.png")}
-              style={styles.logo}
-            />
-          </View>
-          <Text style={styles.addToCartText}>Add to cart</Text>
-        </TouchableOpacity>
+        <FoodDetailModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          selectedItem={selectedItem}
+          selectedAddon={selectedAddon}
+          setSelectedAddon={setSelectedAddon}
+          // styles={styles}
+        />
       </View>
-
-      <FoodDetailModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        selectedItem={selectedItem}
-        selectedAddon={selectedAddon}
-        setSelectedAddon={setSelectedAddon}
-        // styles={styles}
-      />
-    </View>
+      <BottomNav activeTab={null} onChange={handleTabChangeFromDetails} />
+    </SlideWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: "#FCFCFD" },
   headerImage: { height: 188, justifyContent: "space-between", padding: 22 },
   headerActions: {
     flexDirection: "row",

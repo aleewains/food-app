@@ -173,7 +173,12 @@ export default function CartScreen() {
 
               <TouchableOpacity
                 style={styles.emptyBtn}
-                onPress={() => router.back()}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(main)/(stack)/mainpager",
+                    params: { tab: "home" },
+                  })
+                }
               >
                 <Text style={styles.emptyBtnText}>Browse Food</Text>
               </TouchableOpacity>

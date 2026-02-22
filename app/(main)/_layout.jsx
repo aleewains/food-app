@@ -10,29 +10,12 @@ export default function MainLayout() {
         headerShown: false,
         drawerStyle: { width: "50%", backgroundColor: "#fff" },
         overlayColor: "transparent",
-        swipeEdgeWidth: 60, // Only open drawer from the far left edge
+        swipeEnabled: true, // Let the drawer handle edge swipes
+        unmountOnBlur: false,
+        freezeOnBlur: true,
       }}
     >
-      {/* This renders your MainPager component */}
-      <Drawer.Screen name="mainpager" options={{ title: "Main" }} />
-
-      {/* Hide original routes from the Drawer menu list */}
-      <Drawer.Screen
-        name="index"
-        options={{ drawerItemStyle: { display: "none" } }}
-      />
-      <Drawer.Screen
-        name="screens/location"
-        options={{ drawerItemStyle: { display: "none" } }}
-      />
-      <Drawer.Screen
-        name="screens/cart"
-        options={{ drawerItemStyle: { display: "none" } }}
-      />
-      <Drawer.Screen
-        name="screens/favorite"
-        options={{ drawerItemStyle: { display: "none" } }}
-      />
+      <Drawer.Screen name="(stack)" options={{ title: "Main App" }} />
     </Drawer>
   );
 }

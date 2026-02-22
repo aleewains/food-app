@@ -18,13 +18,13 @@ import { ChevronLeft } from "lucide-react-native";
 
 const Header = ({ showBackButton = false, title = "", onBackPress = null }) => {
   const router = useRouter();
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
   const { data: userData } = useSelector((state) => state.user);
 
-  useEffect(() => {
-    dispatch(fetchUserProfile());
-    dispatch(fetchAddresses());
-  }, []);
+  // useEffect(() => {
+  //   dispatch(fetchUserProfile());
+  //   dispatch(fetchAddresses());
+  // }, []);
 
   const { addresses } = useSelector((state) => state.address);
   const currentAddress = addresses.find((a) => a.isDefault) || addresses[0];
@@ -36,18 +36,16 @@ const Header = ({ showBackButton = false, title = "", onBackPress = null }) => {
   const navigation = useNavigation();
 
   const handleBack = () => {
-    // If a custom onBackPress was passed (like from a parent screen), use it
+    // If SearchResults passes a specific onBackPress, use it.
+    // Otherwise, use the standard back behavior.
     if (onBackPress) {
       onBackPress();
     } else if (router.canGoBack()) {
-      // If the router says we can go back, do it
-      router.back();
+      router.back(); // This ensures the Left-to-Right slide
     } else {
-      //If there's no history, send them to the main screen
-      router.replace("/index");
+      router.replace("/(main)/(stack)/mainpager");
     }
   };
-
   return (
     <View style={styles.header}>
       {showBackButton ? (

@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
+  StatusBar,
   ImageBackground,
 } from "react-native";
 import { auth, db } from "../../utils/firebase";
@@ -119,6 +120,7 @@ export default function ProfileScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0} // adjust if you have headers
     >
+      <StatusBar hidden={true} />
       <ScrollView
         keyboardShouldPersistTaps="handled"
         style={styles.container}

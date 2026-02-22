@@ -12,6 +12,8 @@ import {
   Alert,
   Animated,
   Easing,
+  StatusBar,
+  DeviceEventEmitter,
 } from "react-native";
 import { ChevronLeft } from "lucide-react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -172,7 +174,10 @@ export default function OrdersScreen() {
       });
 
       // 4. Navigate using the folder-specific path
-      router.replace("/screens/cart");
+      router.push({
+        pathname: "/(main)/(stack)/mainpager",
+        params: { tab: "cart" },
+      });
     } catch (error) {
       console.error("Navigation failed:", error);
       Alert.alert("Error", "Could not process re-order.");
@@ -180,6 +185,7 @@ export default function OrdersScreen() {
   };
   const renderUpcoming = ({ item }) => (
     <View style={styles.card}>
+      <StatusBar hidden={true} />
       <View style={styles.cardHeader}>
         <View style={{ flex: 1, flexDirection: "row", gap: 12 }}>
           <View style={styles.logoBox}>
@@ -319,7 +325,6 @@ export default function OrdersScreen() {
           const containerPadding = 12; // Total horizontal padding (5 left + 5 right)
           const usableWidth = width - containerPadding;
           setTabWidth(usableWidth / 2);
-          console.log(width);
         }}
       >
         {/* Sliding Indicator */}
