@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,10 @@ import { useDrawerProgress } from "@react-navigation/drawer";
 import Animated, {
   interpolate,
   useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+  withSequence,
 } from "react-native-reanimated";
 
 import { signOut } from "firebase/auth";
@@ -30,6 +34,7 @@ import { DeviceEventEmitter } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchRestaurants } from "../../redux/restaurantSlice";
 import { toggleFavorite, fetchFavorites } from "../../redux/favoriteSlice";
+
 const categories = [
   { title: "Burger", image: require("../../assets/slider/burger.png") },
   { title: "Donat", image: require("../../assets/slider/donat.png") },
@@ -38,61 +43,49 @@ const categories = [
 ];
 
 export default function HomeScreen() {
-  const progress = useDrawerProgress(); // Drawer animation progress (0 - closed, 1 - open)
-
-  const [filter, setFilter] = useState("All");
-  const [search, setSearch] = useState("");
-  const [favorite, setFavorite] = useState(false);
-  const [foodCategory, setFoodCategory] = useState("All");
-
-  const card = require("../../assets/resturant.png");
   const dispatch = useDispatch();
+  const scrollRef = useRef(null);
 
+  // Get data from Redux - Now includes ratings from the start
   const {
     data: restaurants,
     loading,
     error,
   } = useSelector((state) => state.restaurants);
+  const { items: favoriteItems } = useSelector((state) => state.favorites);
+
+  const [search, setSearch] = useState("");
+  const [foodCategory, setFoodCategory] = useState("All");
+  const showSkeletons = loading || (restaurants.length === 0 && !error);
 
   useEffect(() => {
-    const loadData = async () => {
-      const res = await dispatch(fetchRestaurants());
-      dispatch(fetchFavorites());
-
-      if (res.payload) {
-        const dataWithTags = res.payload.map((r) => {
-          const menuTags = r.menu?.map((item) => item.name) || [];
-          return { ...r, tags: [...new Set(menuTags)] };
-        });
-        setRestaurantList(dataWithTags);
-      }
-    };
-    loadData();
+    dispatch(fetchRestaurants());
+    dispatch(fetchFavorites());
   }, [dispatch]);
 
-  const [restaurantList, setRestaurantList] = useState(restaurants || []);
-
-  const filteredRestaurants = restaurantList.filter((r) => {
-    const matchCategory =
-      foodCategory === "All" || r.tags.includes(foodCategory);
-    const searchLower = search.toLowerCase();
-    const matchSearch =
-      r.name.toLowerCase().includes(searchLower) ||
-      r.tags.some((tag) => tag.toLowerCase().includes(searchLower));
-    return matchCategory && matchSearch;
-  });
-
-  const { items: favoriteItems } = useSelector((state) => state.favorites);
+  const filteredRestaurants = useMemo(() => {
+    return restaurants
+      .map((r) => {
+        const menuTags = r.menu?.map((item) => item.name) || [];
+        return { ...r, tags: [...new Set(menuTags)] };
+      })
+      .filter((r) => {
+        const matchCategory =
+          foodCategory === "All" || r.tags.includes(foodCategory);
+        const searchLower = search.toLowerCase();
+        const matchSearch =
+          r.name.toLowerCase().includes(searchLower) ||
+          r.tags.some((tag) => tag.toLowerCase().includes(searchLower));
+        return matchCategory && matchSearch;
+      });
+  }, [restaurants, foodCategory, search]);
 
   const isRestaurantFavorite = (id) => {
     return favoriteItems.some((fav) => fav.id === id);
   };
 
   const handleToggleFavorite = (item) => {
-    // 4. Determine current state based on ID presence in favorites slice
     const currentlyFavorite = isRestaurantFavorite(item.id);
-
-    // Pass the correct object and type
     dispatch(
       toggleFavorite({
         item: { ...item, isFavorite: currentlyFavorite },
@@ -101,10 +94,7 @@ export default function HomeScreen() {
     );
   };
 
-  const scrollRef = useRef(null);
-
   useEffect(() => {
-    // Subscribe to the scroll event
     const subscription = DeviceEventEmitter.addListener(
       "SCROLL_TO_TOP",
       (data) => {
@@ -113,20 +103,45 @@ export default function HomeScreen() {
         }
       },
     );
-
-    // Clean up listener when leaving the page
     return () => subscription.remove();
   }, []);
 
-  const RestaurantSkeleton = () => (
-    <View style={[styles.skeletonCard, { height: 229, marginBottom: 20 }]}>
-      <View style={styles.skeletonImage} />
-      <View style={{ padding: 15 }}>
-        <View style={styles.skeletonLine} />
-        <View style={[styles.skeletonLine, { width: "60%", marginTop: 10 }]} />
-      </View>
-    </View>
-  );
+  const RestaurantSkeleton = () => {
+    const opacity = useSharedValue(0.3);
+
+    useEffect(() => {
+      opacity.value = withRepeat(
+        withSequence(
+          withTiming(0.7, { duration: 800 }),
+          withTiming(0.3, { duration: 800 }),
+        ),
+        -1,
+        true,
+      );
+    }, []);
+
+    const animatedStyle = useAnimatedStyle(() => ({
+      opacity: opacity.value,
+    }));
+
+    return (
+      <Animated.View
+        style={[
+          styles.skeletonCard,
+          { height: 229, marginBottom: 20 },
+          animatedStyle,
+        ]}
+      >
+        <View style={styles.skeletonImage} />
+        <View style={{ padding: 15 }}>
+          <View style={styles.skeletonLine} />
+          <View
+            style={[styles.skeletonLine, { width: "60%", marginTop: 10 }]}
+          />
+        </View>
+      </Animated.View>
+    );
+  };
 
   return (
     <View style={[styles.wrapper]}>
@@ -138,7 +153,6 @@ export default function HomeScreen() {
       >
         <Text style={styles.title}>What would you like {"\n"}to order</Text>
 
-        {/* Search Bar */}
         <Search
           search={search}
           setSearch={setSearch}
@@ -149,11 +163,9 @@ export default function HomeScreen() {
           data={categories}
           onSelect={(item) => {
             if (!item) {
-              //item as null
-              setFoodCategory("All"); // deselected
+              setFoodCategory("All");
             } else {
-              //item passed
-              setFoodCategory(item.title); // selected category
+              setFoodCategory(item.title);
             }
           }}
           style={styles.foodSlider}
@@ -172,15 +184,16 @@ export default function HomeScreen() {
             />
           </TouchableOpacity>
         </View>
-        {loading
-          ? // Show 3 skeletons while loading
-            [1, 2, 3].map((key) => <RestaurantSkeleton key={key} />)
+
+        {showSkeletons
+          ? [1, 2, 3].map((key) => <RestaurantSkeleton key={key} />)
           : filteredRestaurants.map((item, index) => (
               <RestaurantCard
-                key={index}
+                key={item.id || index}
                 name={item.name}
-                rating={item.rating}
-                reviewCount={item.reviewCount}
+                // These are now populated immediately from the fetchRestaurants thunk
+                rating={item.averageRating || 0}
+                reviewCount={item.reviewCount || 0}
                 deliveryTime={item.deliveryTime}
                 deliveryFee={item.deliveryFee}
                 isVerified={item.isVerified}
@@ -188,7 +201,7 @@ export default function HomeScreen() {
                 tags={item.tags}
                 onPressCard={() =>
                   router.push({
-                    pathname: "/(main)/(stack)/FoodDetailsScreen", // Added (stack)
+                    pathname: "/(main)/(stack)/FoodDetailsScreen",
                     params: {
                       restaurant: JSON.stringify(item),
                     },
@@ -206,48 +219,26 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   wrapper: { flex: 1, backgroundColor: "#FCFCFD" },
   container: {
-    // flex: 1,
     padding: 25,
     backgroundColor: "#FCFCFD",
   },
-
   title: {
     fontSize: 30,
     fontWeight: "400",
     fontFamily: "Adamina-Regular",
   },
-  logoutButton: {
-    backgroundColor: "red",
-    padding: 8,
-    borderRadius: 5,
-  },
-  logoutText: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-
   foodSlider: {
     marginHorizontal: -25,
-  },
-  filterButton: {
-    borderRadius: 15,
-    height: 30,
-    width: 85,
-    backgroundColor: "#fff",
-    justifyContent: "center",
-    alignItems: "center",
   },
   featured: {
     flexDirection: "row",
     justifyContent: "space-between",
-    // alignContent: "center",
     alignItems: "center",
   },
   featuredResturant: {
     fontFamily: "Adamina-Regular",
     fontSize: 18,
     fontWeight: "400",
-    lineHeight: "100%",
     color: "#323643",
   },
   ViewAll: {
@@ -257,7 +248,6 @@ const styles = StyleSheet.create({
     fontFamily: "Adamina-Regular",
     fontSize: 13,
     fontWeight: "400",
-    lineHeight: "100%",
     color: "#F56844",
   },
   skeletonCard: {

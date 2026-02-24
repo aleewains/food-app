@@ -166,7 +166,7 @@ export default function OrdersScreen() {
             quantity: product.quantity || 1,
             total: product.price * (product.quantity || 1),
             image: product.image || "",
-            addons: product.addons ?? [], // Crucial fix for Firebase crash
+            addons: product.addons ?? [], // fix for Firebase crash
             restaurantId: item.restaurantId,
             restaurantName: item.restaurantName,
           }),
@@ -295,7 +295,15 @@ export default function OrdersScreen() {
       </View>
 
       <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.cancelBtn}>
+        <TouchableOpacity
+          style={styles.cancelBtn}
+          onPress={() =>
+            router.push({
+              pathname: "/(main)/(stack)/AddReviewScreen",
+              params: { restaurantId: item.restaurantId },
+            })
+          }
+        >
           <Text style={styles.cancelText}>Rate</Text>
         </TouchableOpacity>
 

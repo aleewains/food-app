@@ -27,7 +27,11 @@ const AddReviewScreen = () => {
   const [rating, setRating] = useState(4); // Default to 4 stars like the image
   const [reviewText, setReviewText] = useState("");
 
-  const { loading } = useSelector((state) => state.review);
+  const { data: restaurants, reviewLoading } = useSelector(
+    (state) => state.restaurants,
+  );
+
+  const restaurant = restaurants.find((res) => res.id === restaurantId);
 
   const handleSubmit = async () => {
     if (!reviewText.trim()) return alert("Please write a comment");
@@ -89,7 +93,11 @@ const AddReviewScreen = () => {
           <View style={styles.logoContainer}>
             <View style={styles.logoWrapper}>
               <Image
-                source={require("../../../assets/profile.png")}
+                source={
+                  restaurant?.logoUrl
+                    ? { uri: restaurant.logoUrl }
+                    : require("../../../assets/profile.png")
+                }
                 style={styles.logo}
                 resizeMode="contain"
               />
@@ -121,11 +129,11 @@ const AddReviewScreen = () => {
 
           {/* Submit Button */}
           <TouchableOpacity
-            style={[styles.submitButton, loading && { opacity: 0.7 }]}
+            style={[styles.submitButton, reviewLoading && { opacity: 0.7 }]}
             onPress={handleSubmit}
-            disabled={loading}
+            disabled={reviewLoading}
           >
-            {loading ? (
+            {reviewLoading ? (
               <ActivityIndicator color="#FFF" />
             ) : (
               <Text style={styles.submitText}>SUBMIT</Text>
@@ -168,7 +176,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000000",
+    shadowColor: "#0000004b",
     shadowOffset: {
       width: 21, // Horizontal offset
       height: 100, // Vertical offset

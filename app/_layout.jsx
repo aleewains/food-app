@@ -9,6 +9,7 @@ import { store } from "../redux/store";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 // Prevent the splash screen from hiding automatically
 SplashScreen.preventAutoHideAsync();
@@ -82,10 +83,11 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Provider store={store}>
-        <StatusBar hidden={true} />
-        {/* We use Redirect only once based on the initial calculated state */}
-        <Redirect href={initialRoute} />
-        <Slot />
+        <SafeAreaProvider>
+          <StatusBar hidden={true} />
+          <Redirect href={initialRoute} />
+          <Slot />
+        </SafeAreaProvider>
       </Provider>
     </GestureHandlerRootView>
   );
