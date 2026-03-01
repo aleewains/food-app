@@ -129,7 +129,7 @@ const userService = {
 
         await setDoc(favRef, favData);
 
-        // Return sanitized version for Redux (serverTimestamp may not be available yet, so use Date.now())
+        // Return sanitized version for Redux (serverTimestamp  not be available yet, so use Date.now())
         return {
           ...favData,
           addedAt: Date.now(),
