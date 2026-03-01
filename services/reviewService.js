@@ -10,7 +10,7 @@ import {
   doc,
 } from "firebase/firestore";
 
-// Reuse your existing sanitize helper
+// helper
 const sanitizeData = (data) => {
   if (!data) return data;
   const sanitized = { ...data };
@@ -58,10 +58,10 @@ export const reviewService = {
         ...doc.data(),
       }));
 
-      // 1. Get unique user IDs from the reviews
+      //  Get unique user IDs from the reviews
       const userIds = [...new Set(reviews.map((r) => r.userId))];
 
-      // 2. Fetch user profiles for these IDs
+      //  Fetch user profiles for these IDs
       const userPromises = userIds.map((id) => getDoc(doc(db, "users", id)));
       const userSnapshots = await Promise.all(userPromises);
 
@@ -72,7 +72,7 @@ export const reviewService = {
         }
       });
 
-      // 3. Merge user info into reviews
+      //  Merge user info into reviews
       return reviews.map((review) => ({
         ...sanitizeData(review),
         userName: userMap[review.userId]?.fullName || "Anonymous",

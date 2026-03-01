@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useReducer } from "react";
 import {
   View,
   Text,
@@ -6,27 +6,33 @@ import {
   TouchableOpacity,
   Image,
   FlatList,
-  ScrollView,
   Modal,
   TextInput,
   Alert,
   Animated,
   Easing,
   StatusBar,
-  DeviceEventEmitter,
+  Dimensions,
 } from "react-native";
-import { ChevronLeft } from "lucide-react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useSelector, useDispatch } from "react-redux";
-import { cancelOrder, fetchOrders } from "../../redux/orderSlice";
-import { addToCart, clearCart } from "../../redux/cartSlice";
-import { Header } from "../../components";
+import { cancelOrder, fetchOrders } from "../../../redux/orderSlice";
+import { addToCart, clearCart } from "../../../redux/cartSlice";
+import { Header } from "../../../components";
 import { useRouter } from "expo-router";
 
+const SCREEN_WIDTH = Dimensions.get("window").width;
+const INITIAL_TAB_WIDTH = (SCREEN_WIDTH - 25 * 2 - 12) / 2;
+
 export default function OrdersScreen() {
-  const [activeTab, setActiveTab] = useState("Upcoming");
+  const activeTabRef = useRef("Upcoming");
+  const [, forceUpdate] = useReducer((x) => x + 1, 0);
+
   const translateX = useRef(new Animated.Value(0)).current;
-  const [tabWidth, setTabWidth] = useState(0);
+  const [tabWidth, setTabWidth] = useState(INITIAL_TAB_WIDTH);
+
+  const upcomingTextRef = useRef(null);
+  const historyTextRef = useRef(null);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
@@ -36,21 +42,32 @@ export default function OrdersScreen() {
   const router = useRouter();
 
   const handleTabPress = (tab, index) => {
-    setActiveTab(tab);
+    if (activeTabRef.current === tab) return;
+    activeTabRef.current = tab;
 
+    // Instant color update — no re-render
+    if (index === 0) {
+      upcomingTextRef.current?.setNativeProps({ style: { color: "#fff" } });
+      historyTextRef.current?.setNativeProps({ style: { color: "#9796A1" } });
+    } else {
+      upcomingTextRef.current?.setNativeProps({ style: { color: "#9796A1" } });
+      historyTextRef.current?.setNativeProps({ style: { color: "#fff" } });
+    }
+
+    // Slide indicator
     Animated.timing(translateX, {
-      // The index * tabWidth correctly shifts the indicator
-      // without needing to worry about the container's inner padding
       toValue: index * tabWidth,
       duration: 250,
       easing: Easing.out(Easing.ease),
       useNativeDriver: true,
     }).start();
+
+    // Trigger re-render AFTER animation completes for FlatList data swap
+    setTimeout(() => forceUpdate(), 260);
   };
 
   const dispatch = useDispatch();
   const { orders, loading } = useSelector((state) => state.order);
-
   const restaurants = useSelector((state) => state.restaurants.data || []);
 
   const getRestaurantLogo = (restaurantId) => {
@@ -62,18 +79,15 @@ export default function OrdersScreen() {
     dispatch(fetchOrders());
   }, [dispatch]);
 
-  // Add "|| []" to ensure it's always an array
   const parseDate = (createdAt) => {
     if (!createdAt) return { date: "", time: "" };
-
     let d;
     if (createdAt.seconds) d = new Date(createdAt.seconds * 1000);
     else if (createdAt.toDate) d = createdAt.toDate();
     else d = new Date(createdAt);
-
     return {
-      date: d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }), // e.g. "20 Dec"
-      time: d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), // e.g. "14:30"
+      date: d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }),
+      time: d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
   };
 
@@ -83,15 +97,9 @@ export default function OrdersScreen() {
   };
 
   const handleFinalCancel = () => {
-    dispatch(
-      cancelOrder({
-        orderId: selectedOrderId,
-        reason,
-        description,
-      }),
-    );
+    dispatch(cancelOrder({ orderId: selectedOrderId, reason, description }));
     setModalVisible(false);
-    setDescription(""); // Reset for next time
+    setDescription("");
   };
 
   const totalItemCount = (itemsArray) =>
@@ -107,8 +115,10 @@ export default function OrdersScreen() {
       date: parseDate(o.createdAt),
       arrival: o.estimatedArrival || 30,
     }));
+
   const now = new Date();
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
   const lastedOrders = (orders || [])
     .filter((o) => {
       const orderDate = new Date(o.createdAt);
@@ -125,40 +135,30 @@ export default function OrdersScreen() {
       date: parseDate(o.createdAt),
       items_details: o.items,
     }));
+
   const historyOrders = (orders || [])
     .filter((o) => o.status === "delivered" || o.status === "cancelled")
-    .map((o) => {
-      const dateObj = parseDate(o.createdAt);
-      return {
-        ...o,
-        restaurant: o.restaurantName,
-        logo: getRestaurantLogo(o.restaurantId),
-        items: totalItemCount(o.items),
-        date: parseDate(o.createdAt),
-        arrival: o.estimatedArrival || 30,
-        items_details: o.items,
-      };
-    });
-
-  const displayData = activeTab === "Upcoming" ? upcomingOrders : historyOrders;
+    .map((o) => ({
+      ...o,
+      restaurant: o.restaurantName,
+      logo: getRestaurantLogo(o.restaurantId),
+      items: totalItemCount(o.items),
+      date: parseDate(o.createdAt),
+      arrival: o.estimatedArrival || 30,
+      items_details: o.items,
+    }));
 
   const handleReOrder = (item) => {
     try {
-      // 1. Check if item details exist
       const itemsToProcess = item.items_details || item.items || [];
       if (itemsToProcess.length === 0) {
         Alert.alert("Error", "No items found to re-order.");
         return;
       }
-
-      // 2. Clear current cart state
       dispatch(clearCart());
-
-      // 3. Add items to Redux Cart
       itemsToProcess.forEach((product) => {
         dispatch(
           addToCart({
-            // Generate a unique ID so the cart doesn't conflict
             cartItemId: Date.now().toString() + Math.random(),
             id: product.id,
             name: product.name,
@@ -166,14 +166,12 @@ export default function OrdersScreen() {
             quantity: product.quantity || 1,
             total: product.price * (product.quantity || 1),
             image: product.image || "",
-            addons: product.addons ?? [], // fix for Firebase crash
+            addons: product.addons ?? [],
             restaurantId: item.restaurantId,
             restaurantName: item.restaurantName,
           }),
         );
       });
-
-      // 4. Navigate using the folder-specific path
       router.push({
         pathname: "/(main)/(stack)/mainpager",
         params: { tab: "cart" },
@@ -183,6 +181,7 @@ export default function OrdersScreen() {
       Alert.alert("Error", "Could not process re-order.");
     }
   };
+
   const renderUpcoming = ({ item }) => (
     <View style={styles.card}>
       <StatusBar hidden={true} />
@@ -241,13 +240,7 @@ export default function OrdersScreen() {
   const renderHistory = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <View
-          style={{
-            flex: 1,
-            flexDirection: "row",
-            gap: 12,
-          }}
-        >
+        <View style={{ flex: 1, flexDirection: "row", gap: 12 }}>
           <View style={styles.logoBox}>
             <Image source={{ uri: item.logo }} style={styles.logo} />
           </View>
@@ -306,7 +299,6 @@ export default function OrdersScreen() {
         >
           <Text style={styles.cancelText}>Rate</Text>
         </TouchableOpacity>
-
         <TouchableOpacity
           style={styles.trackBtn}
           onPress={() => handleReOrder(item)}
@@ -319,89 +311,88 @@ export default function OrdersScreen() {
 
   return (
     <SafeAreaProvider style={styles.container}>
-      {/* Header */}
       <Header
         showBackButton={true}
         title="My Orders"
-        onBackPress={() => router.back()}
+        onBackPress={() => {
+          if (router.canGoBack()) router.back();
+          else router.push("/(main)/(stack)/mainpager");
+        }}
       />
+
       {/* Tab Switcher */}
       <View
         style={styles.tabContainer}
         onLayout={(e) => {
-          const { width } = e.nativeEvent.layout;
-          const containerPadding = 12; // Total horizontal padding (5 left + 5 right)
-          const usableWidth = width - containerPadding;
-          setTabWidth(usableWidth / 2);
+          const { width: containerWidth } = e.nativeEvent.layout;
+          setTabWidth((containerWidth - 12) / 2);
         }}
       >
-        {/* Sliding Indicator */}
         <Animated.View
           style={[
             styles.indicator,
-            {
-              width: tabWidth,
-              transform: [{ translateX }],
-            },
+            { width: tabWidth, transform: [{ translateX }] },
           ]}
         />
 
-        {["Upcoming", "History"].map((tab, index) => (
-          <TouchableOpacity
-            key={tab}
-            style={styles.tab}
-            onPress={() => handleTabPress(tab, index)}
-            activeOpacity={0.8}
+        {/* Upcoming Tab */}
+        <TouchableOpacity
+          style={styles.tab}
+          onPress={() => handleTabPress("Upcoming", 0)}
+          activeOpacity={0.8}
+        >
+          <Text
+            ref={upcomingTextRef}
+            style={[styles.tabText, { color: "#fff" }]}
           >
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === tab && styles.activeTabText,
-              ]}
-            >
-              {tab}
-            </Text>
-          </TouchableOpacity>
-        ))}
+            Upcoming
+          </Text>
+        </TouchableOpacity>
+
+        {/* History Tab */}
+        <TouchableOpacity
+          style={styles.tab}
+          onPress={() => handleTabPress("History", 1)}
+          activeOpacity={0.8}
+        >
+          <Text
+            ref={historyTextRef}
+            style={[styles.tabText, { color: "#9796A1" }]}
+          >
+            History
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.listContainer}>
         <FlatList
-          data={displayData}
+          data={
+            activeTabRef.current === "Upcoming" ? upcomingOrders : historyOrders
+          }
           keyExtractor={(item, index) => item.id || index.toString()}
-          renderItem={activeTab === "Upcoming" ? renderUpcoming : renderHistory}
+          renderItem={
+            activeTabRef.current === "Upcoming" ? renderUpcoming : renderHistory
+          }
           refreshing={loading}
           showsVerticalScrollIndicator={false}
           onRefresh={() => dispatch(fetchOrders())}
           ListFooterComponent={() =>
-            activeTab === "Upcoming" && lastedOrders.length > 0 ? (
-              <View style={{ marginTop: 0 }}>
+            activeTabRef.current === "Upcoming" && lastedOrders.length > 0 ? (
+              <View>
                 <Text style={styles.sectionTitle}>Lasted Orders</Text>
                 {lastedOrders.map((item) => (
-                  <View key={item.id}>
-                    {/*  Wrap the item in an object to match renderHistory's signature */}
-                    {renderHistory({ item })}
-                  </View>
+                  <View key={item.id}>{renderHistory({ item })}</View>
                 ))}
               </View>
             ) : null
           }
           ListEmptyComponent={
-            <Text
-              style={{
-                fontSize: 18,
-                fontFamily: "Adamina-Regular",
-                textAlign: "center",
-                marginTop: 20,
-                marginBottom: 20,
-              }}
-            >
-              No orders found.
-            </Text>
+            <Text style={styles.emptyText}>No orders found.</Text>
           }
         />
       </View>
-      <Modal visible={modalVisible} transparent animationType="fade">
+
+      <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <TouchableOpacity
@@ -449,30 +440,8 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     backgroundColor: "#FCFCFD",
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    marginTop: 10,
-  },
-  headerTitle: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 18,
-    // fontWeight: "400",
-  },
-  backBtn: {
-    padding: 10,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    elevation: 2,
-    shadowOpacity: 0.1,
-  },
-  profileImg: { width: 40, height: 40, borderRadius: 10 },
-
   tabContainer: {
     flexDirection: "row",
-    // backgroundColor: "#F6F6F6",
     borderColor: "#F2EAEA",
     borderWidth: 1,
     marginHorizontal: 25,
@@ -490,9 +459,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FE724C",
     borderRadius: 25,
   },
-
   tab: {
-    // backgroundColor: "#a9a19f",
     flex: 1,
     paddingVertical: 15,
     alignItems: "center",
@@ -501,29 +468,28 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontFamily: "Adamina-Regular",
-    color: "#9796A1",
     fontWeight: "500",
   },
-  activeTabText: { color: "#fff" },
-
+  emptyText: {
+    fontSize: 18,
+    fontFamily: "Adamina-Regular",
+    textAlign: "center",
+    marginTop: 20,
+    marginBottom: 20,
+  },
   card: {
     padding: 15,
     backgroundColor: "white",
     borderRadius: 20,
     marginTop: 5,
     marginBottom: 20,
-    // alignSelf: "center",
     elevation: 8,
     shadowColor: "#D3D1D840",
     shadowOpacity: 0.25,
     shadowRadius: 20,
     shadowOffset: { width: 0, height: 4 },
   },
-  cardHeader: {
-    flexDirection: "row",
-    // backgroundColor: "#d8d6d6",
-    // justifyContent: "space-between",
-  },
+  cardHeader: { flexDirection: "row" },
   logoBox: {
     width: 80,
     height: 80,
@@ -531,19 +497,9 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     justifyContent: "center",
     alignItems: "center",
-    // This creates the "floating" shadow for the logo box specifically
-    // elevation: 10,
-    // shadowColor: "#000",
-    // shadowOpacity: 0.1,
-    // shadowRadius: 10,
-    // shadowOffset: { width: 0, height: 5 },
     boxShadow: "11.48px 17.22px 22.96px rgba(211, 209, 216, 0.45)",
   },
-  logo: {
-    width: 60,
-    height: 60,
-    resizeMode: "contain",
-  },
+  logo: { width: 60, height: 60, resizeMode: "contain" },
   restaurantName: {
     fontFamily: "Adamina-Regular",
     fontSize: 16,
@@ -566,7 +522,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 16,
   },
-
   statusRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -584,7 +539,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-
   buttonRow: { flexDirection: "row", gap: 15, marginTop: 10 },
   trackBtn: {
     flex: 1,
@@ -612,42 +566,11 @@ const styles = StyleSheet.create({
     color: "#000",
     fontWeight: "500",
   },
-
   sectionTitle: {
     fontFamily: "Adamina-Regular",
     fontSize: 22,
     fontWeight: "600",
     marginVertical: 15,
-  },
-  historyCard: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 15,
-    marginBottom: 20,
-    elevation: 3,
-    shadowOpacity: 0.05,
-  },
-  historyTop: { flexDirection: "row", alignItems: "center" },
-  historyLogo: { width: 45, height: 45, borderRadius: 10 },
-  historyDate: { color: "#9796A1", fontSize: 12 },
-  priceText: {
-    fontFamily: "Adamina-Regular",
-    color: "#FE724C",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  deliveredRow: { flexDirection: "row", alignItems: "center", marginTop: 4 },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#00BFA5",
-    marginRight: 6,
-  },
-  deliveredText: {
-    fontFamily: "Adamina-Regular",
-    color: "#00BFA5",
-    fontSize: 12,
   },
   dateText: {
     fontFamily: "Adamina-Regular",
@@ -658,39 +581,11 @@ const styles = StyleSheet.create({
   timeText: {
     fontFamily: "Adamina-Regular",
     fontSize: 14,
-    color: "#9796A1", // Lighter grey for time
+    color: "#9796A1",
     fontWeight: "400",
-  },
-  deliveredRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 4,
-  },
-  deliveredText: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 14,
-    fontWeight: "600",
-    textTransform: "capitalize",
-  },
-  rateBtn: {
-    flex: 1,
-    backgroundColor: "#fff",
-    paddingVertical: 10,
-    borderRadius: 25,
-    alignItems: "center",
-    borderWeight: 1,
-    borderColor: "#F2F2F2",
-  },
-  reorderBtn: {
-    flex: 1,
-    backgroundColor: "#FE724C",
-    paddingVertical: 10,
-    borderRadius: 25,
-    alignItems: "center",
   },
   modalOverlay: {
     flex: 1,
-    // backgroundColor: "rgba(0,0,0,0.4)",
     justifyContent: "center",
     padding: 20,
   },
@@ -705,9 +600,7 @@ const styles = StyleSheet.create({
     shadowRadius: 36,
     elevation: 10,
   },
-  closeIcon: {
-    alignSelf: "flex-end",
-  },
+  closeIcon: { alignSelf: "flex-end" },
   modalTitle: {
     fontFamily: "Adamina-Regular",
     fontSize: 18,

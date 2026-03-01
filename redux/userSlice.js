@@ -1,4 +1,3 @@
-// redux/userSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import userService from "../services/firebaseService";
 
@@ -36,7 +35,6 @@ const userSlice = createSlice({
     error: null,
   },
   reducers: {
-    // Optional: update locally without API
     setUserData: (state, action) => {
       state.data = action.payload;
     },

@@ -12,20 +12,21 @@ import {
   StatusBar,
   ImageBackground,
 } from "react-native";
-import { auth, db } from "../../utils/firebase";
+import { auth, db } from "../../../utils/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import * as ImagePicker from "expo-image-picker";
 import { Camera, ChevronLeft } from "lucide-react-native";
-import storageService from "../../services/supabase";
-import CustomInput from "../../components/CustomInput";
+import storageService from "../../../services/supabase";
+import CustomInput from "../../../components/CustomInput";
 import { CountryPicker } from "react-native-country-codes-picker";
+import { DeviceEventEmitter } from "react-native";
 import { useRouter } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchUserProfile,
   updateUserProfile,
   setUserData,
-} from "../../redux/userSlice";
+} from "../../../redux/userSlice";
 import { KeyboardAvoidingView, Platform } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -130,14 +131,21 @@ export default function ProfileScreen() {
         <View style={styles.mainWrapper}>
           <View style={styles.orangeBg} pointerEvents="none">
             <Image
-              source={require("../../assets/profileBg.png")}
+              source={require("../../../assets/profileBg.png")}
               style={styles.bgImage}
             />
           </View>
 
           <View style={styles.header}>
             <TouchableOpacity
-              onPress={() => router.back()}
+              onPress={() => {
+                if (router.canGoBack()) {
+                  router.back();
+                } else {
+                  DeviceEventEmitter.emit("CHANGE_TAB", { tab: "home" });
+                  router.replace("/(main)/(stack)/mainpager");
+                }
+              }}
               style={styles.iconCircle}
             >
               <ChevronLeft size={20} color="#000" />
@@ -151,7 +159,7 @@ export default function ProfileScreen() {
                 source={
                   userData?.profileImage
                     ? { uri: userData.profileImage }
-                    : require("../../assets/profile.png")
+                    : require("../../../assets/profile.png")
                 }
                 style={styles.profileImage}
               />

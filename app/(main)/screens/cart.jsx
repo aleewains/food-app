@@ -28,6 +28,7 @@ export default function CartScreen() {
   const router = useRouter();
 
   const cartItems = useSelector((state) => state.cart.items);
+
   const { loading, error, currentOrder } = useSelector((state) => state.order);
 
   const subtotal = useMemo(() => {
@@ -45,7 +46,7 @@ export default function CartScreen() {
 
     // Sanitize items to ensure no 'undefined' fields hit Firebase
     const sanitizedItems = cartItems.map((item) => ({
-      id: item.id || "",
+      id: item.itemId || "",
       cartItemId: item.cartItemId,
       name: item.name || "",
       price: item.price || 0,
@@ -54,6 +55,8 @@ export default function CartScreen() {
       image: item.image || "",
       addons: item.addons ?? [],
     }));
+
+    console.log("sanitixe-iems", sanitizedItems);
 
     const order = {
       restaurantId: cartItems[0].restaurantId,
@@ -65,13 +68,15 @@ export default function CartScreen() {
       total,
     };
 
+    console.log("order", order);
+
     dispatch(createOrder(order));
   };
 
   useEffect(() => {
     if (currentOrder) {
       dispatch(clearCart());
-      router.replace("/drawer/myOrders");
+      router.push("/(main)/(stack)/myOrders");
       dispatch(clearOrder());
     }
   }, [currentOrder, dispatch, router]);
@@ -130,6 +135,7 @@ export default function CartScreen() {
   );
 
   const handleBack = () => {
+    // router.back();
     // Instead of router.back(), we tell the PagerView to move to index 0 (Home)
     DeviceEventEmitter.emit("CHANGE_TAB", { tab: "home" });
   };
@@ -174,10 +180,7 @@ export default function CartScreen() {
               <TouchableOpacity
                 style={styles.emptyBtn}
                 onPress={() =>
-                  router.push({
-                    pathname: "/(main)/(stack)/mainpager",
-                    params: { tab: "home" },
-                  })
+                  DeviceEventEmitter.emit("CHANGE_TAB", { tab: "home" })
                 }
               >
                 <Text style={styles.emptyBtnText}>Browse Food</Text>

@@ -46,7 +46,6 @@ export default function HomeScreen() {
   const dispatch = useDispatch();
   const scrollRef = useRef(null);
 
-  // Get data from Redux - Now includes ratings from the start
   const {
     data: restaurants,
     loading,
@@ -185,32 +184,41 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {showSkeletons
-          ? [1, 2, 3].map((key) => <RestaurantSkeleton key={key} />)
-          : filteredRestaurants.map((item, index) => (
-              <RestaurantCard
-                key={item.id || index}
-                name={item.name}
-                // These are now populated immediately from the fetchRestaurants thunk
-                rating={item.averageRating || 0}
-                reviewCount={item.reviewCount || 0}
-                deliveryTime={item.deliveryTime}
-                deliveryFee={item.deliveryFee}
-                isVerified={item.isVerified}
-                imageUrl={{ uri: item.imageUrl }}
-                tags={item.tags}
-                onPressCard={() =>
-                  router.push({
-                    pathname: "/(main)/(stack)/FoodDetailsScreen",
-                    params: {
-                      restaurant: JSON.stringify(item),
-                    },
-                  })
-                }
-                isFavorite={isRestaurantFavorite(item.id)}
-                onPressFavorite={() => handleToggleFavorite(item)}
-              />
-            ))}
+        {showSkeletons ? (
+          [1, 2, 3].map((key) => <RestaurantSkeleton key={key} />)
+        ) : filteredRestaurants.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>No restaurants found</Text>
+            <Text style={styles.emptyStateSubText}>
+              Try searching for something else
+            </Text>
+          </View>
+        ) : (
+          filteredRestaurants.map((item, index) => (
+            <RestaurantCard
+              key={item.id || index}
+              name={item.name}
+              // These are now populated immediately from the fetchRestaurants thunk
+              rating={item.averageRating || 0}
+              reviewCount={item.reviewCount || 0}
+              deliveryTime={item.deliveryTime}
+              deliveryFee={item.deliveryFee}
+              isVerified={item.isVerified}
+              imageUrl={{ uri: item.imageUrl }}
+              tags={item.tags}
+              onPressCard={() =>
+                router.push({
+                  pathname: "/(main)/(stack)/FoodDetailsScreen",
+                  params: {
+                    restaurant: JSON.stringify(item),
+                  },
+                })
+              }
+              isFavorite={isRestaurantFavorite(item.id)}
+              onPressFavorite={() => handleToggleFavorite(item)}
+            />
+          ))
+        )}
       </ScrollView>
     </View>
   );
@@ -264,5 +272,22 @@ const styles = StyleSheet.create({
     width: "90%",
     backgroundColor: "#f2f8fcee",
     borderRadius: 4,
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: "center",
+    marginTop: 60,
+  },
+  emptyStateText: {
+    fontFamily: "Adamina-Regular",
+    fontSize: 18,
+    fontWeight: "400",
+    color: "#323643",
+    marginBottom: 8,
+  },
+  emptyStateSubText: {
+    fontFamily: "Adamina-Regular",
+    fontSize: 14,
+    color: "#9A9A9A",
   },
 });

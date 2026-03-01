@@ -11,14 +11,15 @@ import {
 } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ChevronLeft, Trash2, Pencil } from "lucide-react-native";
-import { auth, db } from "../../utils/firebase";
+import { auth, db } from "../../../utils/firebase";
 import { collection, deleteDoc, doc, onSnapshot } from "firebase/firestore";
 import {
   fetchAddresses,
   deleteAddress,
   setDefaultAddress,
-} from "../../redux/addressSlice";
+} from "../../../redux/addressSlice";
 import { useSelector, useDispatch } from "react-redux";
+import SlideWrapper from "../../../components/slideWrapper";
 
 export default function DeliveryAddress() {
   const router = useRouter();
@@ -64,111 +65,121 @@ export default function DeliveryAddress() {
   }
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        {/* Column 1: Back Button */}
-        <View style={styles.headerLeft}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backBtn}
-          >
-            <ChevronLeft size={22} color="#000" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Column 2: Centered Title */}
-        <View style={styles.headerCenter}>
-          <Text style={styles.title}>Delivery Address</Text>
-        </View>
-
-        {/* Column 3: Empty Placeholder (Important for Balance) */}
-        <View style={styles.headerRight} />
-      </View>
-
-      {/* Address List */}
-      <FlatList
-        data={addresses}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{
-          paddingTop: 10, // Fixes the top card shadow
-          paddingBottom: 20, // Optional: space at the bottom
-        }}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No addresses added yet</Text>
-        }
-        // ... inside your FlatList renderItem
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.card,
-              item.isDefault && styles.activeCard, // Highlight the card if it's default
-            ]}
-            onPress={() => handleSetDefault(item.id)}
-          >
-            {/* Selection Radio Button */}
-            <View style={styles.selectionContainer}>
-              <View
-                style={[
-                  styles.outerCircle,
-                  item.isDefault && styles.activeOuter,
-                ]}
-              >
-                {item.isDefault && <View style={styles.innerCircle} />}
-              </View>
-            </View>
-
-            <View style={{ flex: 1 }}>
-              <Text style={styles.name}>{item.fullName}</Text>
-              <Text style={styles.text} numberOfLines={1}>
-                {item.street}
-              </Text>
-              <Text style={styles.text}>{item.city}</Text>
-            </View>
-
-            <View style={styles.actions}>
-              <TouchableOpacity
-                style={styles.iconBtn}
-                onPress={() => handleDelete(item.id)}
-              >
-                <Image
-                  style={styles.icon}
-                  source={require("../../assets/icons/trash.png")}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.iconBtn}
-                onPress={() =>
-                  router.push({
-                    pathname: "/drawer/addAddress",
-                    params: { id: item.id, data: JSON.stringify(item) },
-                  })
+    <SlideWrapper>
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          {/* Column 1: Back Button */}
+          <View style={styles.headerLeft}>
+            <TouchableOpacity
+              onPress={() => {
+                if (router.canGoBack()) {
+                  router.back();
+                } else {
+                  DeviceEventEmitter.emit("CHANGE_TAB", { tab: "home" });
+                  router.replace("/(main)/(stack)/mainpager");
                 }
-              >
-                <Image
-                  style={styles.icon}
-                  source={require("../../assets/icons/edit2.png")}
-                />
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        )}
-      />
+              }}
+              style={styles.backBtn}
+            >
+              <ChevronLeft size={22} color="#000" />
+            </TouchableOpacity>
+          </View>
 
-      {/* Add Address Button */}
-      <TouchableOpacity
-        style={styles.addBtn}
-        onPress={() => router.push("/drawer/addAddress")}
-      >
-        <Text style={styles.addText}>ADD NEW ADDRESS</Text>
-      </TouchableOpacity>
-    </View>
+          {/* Column 2: Centered Title */}
+          <View style={styles.headerCenter}>
+            <Text style={styles.title}>Delivery Address</Text>
+          </View>
+
+          {/* Column 3: Empty Placeholder (Important for Balance) */}
+          <View style={styles.headerRight} />
+        </View>
+
+        {/* Address List */}
+        <FlatList
+          data={addresses}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{
+            paddingTop: 10, // Fixes the top card shadow
+            paddingBottom: 20, // Optional: space at the bottom
+          }}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No addresses added yet</Text>
+          }
+          // ... inside your FlatList renderItem
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={[
+                styles.card,
+                item.isDefault && styles.activeCard, // Highlight the card if it's default
+              ]}
+              onPress={() => handleSetDefault(item.id)}
+            >
+              {/* Selection Radio Button */}
+              <View style={styles.selectionContainer}>
+                <View
+                  style={[
+                    styles.outerCircle,
+                    item.isDefault && styles.activeOuter,
+                  ]}
+                >
+                  {item.isDefault && <View style={styles.innerCircle} />}
+                </View>
+              </View>
+
+              <View style={{ flex: 1 }}>
+                <Text style={styles.name}>{item.fullName}</Text>
+                <Text style={styles.text} numberOfLines={1}>
+                  {item.street}
+                </Text>
+                <Text style={styles.text}>{item.city}</Text>
+              </View>
+
+              <View style={styles.actions}>
+                <TouchableOpacity
+                  style={styles.iconBtn}
+                  onPress={() => handleDelete(item.id)}
+                >
+                  <Image
+                    style={styles.icon}
+                    source={require("../../../assets/icons/trash.png")}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.iconBtn}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/drawer/addAddress",
+                      params: { id: item.id, data: JSON.stringify(item) },
+                    })
+                  }
+                >
+                  <Image
+                    style={styles.icon}
+                    source={require("../../../assets/icons/edit2.png")}
+                  />
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+
+        {/* Add Address Button */}
+        <TouchableOpacity
+          style={styles.addBtn}
+          onPress={() => router.push("/addAddress")}
+        >
+          <Text style={styles.addText}>ADD NEW ADDRESS</Text>
+        </TouchableOpacity>
+      </View>
+    </SlideWrapper>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#FCFCFD",
   },
   loader: {
     flex: 1,
@@ -194,12 +205,18 @@ const styles = StyleSheet.create({
     width: 40, // Must be EXACTLY the same as headerLeft width
   },
   backBtn: {
-    alignSelf: "flex-start",
     width: 38,
     height: 38,
     backgroundColor: "#FFFFFF",
     borderRadius: 14,
-    boxShadow: "5px 10px 20px rgba(211, 209, 216, 0.3)",
+    shadowColor: "#E9EDF2",
+    shadowOffset: {
+      width: 0,
+      height: 15,
+    },
+    shadowOpacity: 0.9,
+    shadowRadius: 30, // blur = 30
+    elevation: 20,
     justifyContent: "center",
     alignItems: "center",
   },

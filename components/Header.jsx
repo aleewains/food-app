@@ -36,8 +36,6 @@ const Header = ({ showBackButton = false, title = "", onBackPress = null }) => {
   const navigation = useNavigation();
 
   const handleBack = () => {
-    // If SearchResults passes a specific onBackPress, use it.
-    // Otherwise, use the standard back behavior.
     if (onBackPress) {
       onBackPress();
     } else if (router.canGoBack()) {
@@ -49,7 +47,11 @@ const Header = ({ showBackButton = false, title = "", onBackPress = null }) => {
   return (
     <View style={styles.header}>
       {showBackButton ? (
-        <TouchableOpacity style={styles.sideBar} onPress={handleBack}>
+        <TouchableOpacity
+          style={styles.sideBar}
+          onPress={handleBack}
+          activeOpacity={0.8}
+        >
           <ChevronLeft size={20} color="#000" />
         </TouchableOpacity>
       ) : (
@@ -108,8 +110,9 @@ const Header = ({ showBackButton = false, title = "", onBackPress = null }) => {
       )}
 
       <TouchableOpacity
+        activeOpacity={0.8}
         style={styles.profilePhoto}
-        onPress={() => router.push("/drawer/myProfile")}
+        onPress={() => router.push("/(main)/(stack)/myProfile")}
       >
         <Image source={profile} style={styles.profileImage} />
       </TouchableOpacity>

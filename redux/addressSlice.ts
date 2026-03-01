@@ -96,7 +96,7 @@ export const addAddress = createAsyncThunk<
 // Update Address
 // Update the first generic parameter here
 export const updateAddress = createAsyncThunk<
-  { id: string; data: Partial<Address> }, // <--- Changed from Address
+  { id: string; data: Partial<Address> }, // Changed from Address
   { id: string; data: Partial<Address> },
   { rejectValue: string }
 >("address/updateAddress", async ({ id, data }, { rejectWithValue }) => {

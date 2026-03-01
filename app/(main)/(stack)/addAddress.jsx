@@ -9,7 +9,7 @@ import {
   ScrollView,
   Platform,
 } from "react-native";
-import CustomInput from "../../components/CustomInput";
+import CustomInput from "../../../components/CustomInput";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { CountryPicker } from "react-native-country-codes-picker";
 import { ChevronLeft } from "lucide-react-native";
@@ -19,7 +19,7 @@ import {
   addAddress,
   updateAddress,
   Address,
-} from "../../redux/addressSlice"; // adjust path
+} from "../../../redux/addressSlice"; // adjust path
 
 const AddAddressScreen = () => {
   const [showPicker, setShowPicker] = useState(false);

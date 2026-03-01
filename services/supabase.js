@@ -7,7 +7,46 @@ import { Platform } from "react-native";
 class SupabaseService {
   bucket = "images";
 
-  async uploadUserImage(uri) {
+  /**
+   * Extracts the storage file path from a Supabase public URL.
+   * e.g. "https://xxx.supabase.co/storage/v1/object/public/images/profiles/profile_123.jpg"
+   *   → "profiles/profile_123.jpg"
+   */
+  getPathFromUrl(url) {
+    if (!url) return null;
+    try {
+      // The path after "/public/<bucket>/" is the file path inside the bucket
+      const marker = `/public/${this.bucket}/`;
+      const idx = url.indexOf(marker);
+      if (idx === -1) return null;
+      return url.substring(idx + marker.length);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Deletes a file from Supabase storage by its public URL.
+   * Silently ignores errors — a failed delete should never block an upload.
+   */
+  async deleteByUrl(url) {
+    const path = this.getPathFromUrl(url);
+    if (!path) return;
+    try {
+      const { error } = await supabase.storage.from(this.bucket).remove([path]);
+      if (error) console.warn("Supabase delete warning:", error.message);
+      else console.log("Deleted old image:", path);
+    } catch (err) {
+      console.warn("Supabase delete failed silently:", err.message);
+    }
+  }
+
+  /**
+   * Uploads a new profile image and deletes the old one if it exists.
+   * @param {string} uri        - Local URI of the new image
+   * @param {string} oldUrl     - Current profileImage URL to delete (optional)
+   */
+  async uploadUserImage(uri, oldUrl = null) {
     if (!uri) return null;
 
     try {
@@ -21,12 +60,9 @@ class SupabaseService {
         const response = await fetch(uri);
         fileBody = await response.blob();
       } else {
-        // MOBILE LOGIC: Using legacy readAsStringAsync
         const base64 = await FileSystem.readAsStringAsync(uri, {
           encoding: FileSystem.EncodingType.Base64,
         });
-
-        // Convert Base64 string to ArrayBuffer for Supabase
         fileBody = decode(base64);
       }
 
@@ -43,7 +79,15 @@ class SupabaseService {
         .from(this.bucket)
         .getPublicUrl(filePath);
 
-      return urlData.publicUrl;
+      const newUrl = urlData.publicUrl;
+
+      // Delete the old image AFTER the new one is successfully uploaded
+      // never end up with no image if the delete fails
+      if (oldUrl) {
+        await this.deleteByUrl(oldUrl);
+      }
+
+      return newUrl;
     } catch (err) {
       console.error("Supabase Upload Error:", err.message);
       return null;

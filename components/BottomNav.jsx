@@ -81,7 +81,7 @@ export default function BottomNav({ activeTab, onChange, onReselect }) {
 
 const styles = StyleSheet.create({
   wrapper: {
-    bottom: 20,
+    bottom: 30,
   },
   container: {
     flexDirection: "row",

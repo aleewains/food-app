@@ -9,9 +9,10 @@ const ItemCard = ({
   onUpdateCount,
   onToggleFav,
   onAddOns,
+  onPressCard,
 }) => {
   return (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={onPressCard}>
       {/* Favorite Heart */}
       <TouchableOpacity style={styles.heartAction} onPress={onToggleFav}>
         <Heart
@@ -71,7 +72,7 @@ const ItemCard = ({
           ) : null}
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -79,7 +80,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
     borderRadius: 20,
-    padding: 12,
+    // padding: 12,
     marginBottom: 20,
     flexDirection: "row",
     shadowColor: "#00000041",
@@ -87,6 +88,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 15,
     elevation: 6,
+    overflow: "hidden",
   },
   heartAction: {
     position: "absolute",
@@ -95,19 +97,21 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   imageContainer: {
-    width: 90,
-    height: 90,
+    width: 100,
+    height: 100,
     // backgroundColor: "#F6F6F6",
     borderRadius: 15,
     justifyContent: "center",
     alignItems: "center",
   },
   image: {
-    width: "80%",
-    height: "80%",
-    resizeMode: "contain",
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   content: {
+    padding: 12,
+    paddingLeft: 4,
     flex: 1,
     marginLeft: 15,
     justifyContent: "space-between",

@@ -9,10 +9,10 @@ export const fetchRestaurants = createAsyncThunk(
   "restaurants/fetchAll",
   async (_, { rejectWithValue }) => {
     try {
-      // 1. Fetch the basic restaurant list
+      //  Fetch the basic restaurant list
       const restaurants = await userService.fetchRestaurants();
 
-      // 2. Map through each restaurant and fetch its reviews in parallel
+      //  Map through each restaurant and fetch its reviews in parallel
       const enrichedRestaurants = await Promise.all(
         restaurants.map(async (restaurant) => {
           try {
@@ -29,7 +29,7 @@ export const fetchRestaurants = createAsyncThunk(
             }
             return { ...restaurant, averageRating: 0, reviewCount: 0 };
           } catch (err) {
-            // If one restaurant's reviews fail, still return the restaurant
+            // If one restaurant reviews fail, still return the restaurant
             return { ...restaurant, averageRating: 0, reviewCount: 0 };
           }
         }),

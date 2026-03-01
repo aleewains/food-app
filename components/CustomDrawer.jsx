@@ -12,9 +12,12 @@ import { signOut } from "firebase/auth";
 import { auth } from "../utils/firebase";
 import { router, useRouter } from "expo-router";
 import userService from "../services/firebaseService";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchUserProfile } from "../redux/userSlice";
 
 export default function CustomDrawer({ navigation }) {
-  const [userData, setUserData] = useState();
+  const { data: userData, loading } = useSelector((state) => state.user);
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -23,22 +26,11 @@ export default function CustomDrawer({ navigation }) {
       console.log("Logout error:", error.message);
     }
   };
+  const dispatch = useDispatch();
   useEffect(() => {
-    fetchUserProfile();
-  }, []);
-  const fetchUserProfile = async () => {
-    try {
-      const data = await userService.getUserProfile();
-      if (data) {
-        setUserData(data);
-        if (data.countryCode) setCountryCode(data.countryCode);
-      }
-    } catch (error) {
-      console.log("Current user:", auth.currentUser);
-      console.log("Current Error:", error);
-    } finally {
-    }
-  };
+    dispatch(fetchUserProfile());
+  }, [dispatch]);
+
   const orders = require("../assets/drawer/orders.png");
   const profile = require("../assets/drawer/Profile.png");
   const location = require("../assets/drawer/Location.png");
@@ -65,7 +57,10 @@ export default function CustomDrawer({ navigation }) {
 
       <TouchableOpacity
         style={styles.item}
-        onPress={() => router.push("/drawer/myOrders")}
+        onPress={() => {
+          navigation.closeDrawer();
+          router.push("/(main)/(stack)/myOrders");
+        }}
       >
         <View style={styles.drawerItems}>
           <Image source={orders} style={styles.icon} />
@@ -75,7 +70,10 @@ export default function CustomDrawer({ navigation }) {
 
       <TouchableOpacity
         style={styles.item}
-        onPress={() => router.push("/drawer/myProfile")}
+        onPress={() => {
+          navigation.closeDrawer();
+          router.push("/(main)/(stack)/myProfile");
+        }}
       >
         <View style={styles.drawerItems}>
           <Image source={profile} style={styles.icon} />
@@ -85,7 +83,10 @@ export default function CustomDrawer({ navigation }) {
 
       <TouchableOpacity
         style={styles.item}
-        onPress={() => router.push("/drawer/deliveryAddress")}
+        onPress={() => {
+          navigation.closeDrawer();
+          router.push("/(main)/(stack)/deliveryAddress");
+        }}
       >
         <View style={styles.drawerItems}>
           <Image source={location} style={styles.icon} />
@@ -103,7 +104,9 @@ export default function CustomDrawer({ navigation }) {
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.item}
-        onPress={() => navigation.navigate("favorites")}
+        onPress={() => {
+          navigation.navigate("favorites");
+        }}
       >
         <View style={styles.drawerItems}>
           <Image source={setting} style={styles.icon} />

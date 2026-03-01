@@ -32,6 +32,7 @@ const cartSlice = createSlice({
   reducers: {
     addToCart: (state, action) => {
       const newItem = action.payload;
+      // console.log(newItem);
 
       state.error = null;
 

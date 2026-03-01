@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 // @ts-ignore: getReactNativePersistence exists in the RN bundle
-// but is often missing from public TypeScript definitions.
+
 import {
   initializeAuth,
   Auth,

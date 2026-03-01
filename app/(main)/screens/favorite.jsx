@@ -44,6 +44,8 @@ export default function FavoritesScreen() {
   const allFoodItems = allRestaurants.flatMap((res) =>
     (res.menu || []).map((food) => ({
       ...food,
+      parentRestaurant: res,
+      restaurantId: res.id,
       restaurantName: res.name,
     })),
   );
@@ -85,6 +87,14 @@ export default function FavoritesScreen() {
       item={item}
       isFav={true}
       onToggleFav={() => dispatch(toggleFavorite({ item, type: "food" }))}
+      onPressCard={() =>
+        router.push({
+          pathname: "/(stack)/FoodDetailsScreen",
+          params: {
+            restaurant: JSON.stringify(item.parentRestaurant),
+          },
+        })
+      }
     />
   );
 
@@ -102,7 +112,14 @@ export default function FavoritesScreen() {
       onPressFavorite={() =>
         dispatch(toggleFavorite({ item, type: "restaurant" }))
       }
-      onPressCard={() => router.push(`/restaurant/${item.id}`)}
+      onPressCard={() =>
+        router.push({
+          pathname: "/(stack)/FoodDetailsScreen",
+          params: {
+            restaurant: JSON.stringify(item),
+          },
+        })
+      }
     />
   );
 

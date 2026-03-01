@@ -1,7 +1,13 @@
-import { useEffect, useState, useCallback } from "react";
-import { Slot, Redirect } from "expo-router";
+import { useEffect, useState } from "react";
+import { Slot, Redirect, Stack } from "expo-router";
 import { Provider } from "react-redux";
-import { View, ActivityIndicator, StatusBar } from "react-native";
+import {
+  View,
+  ActivityIndicator,
+  StatusBar,
+  Platform,
+  StyleSheet,
+} from "react-native";
 import { onAuthStateChanged } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { auth } from "../utils/firebase";
@@ -10,6 +16,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import * as NavigationBar from "expo-navigation-bar";
 
 // Prevent the splash screen from hiding automatically
 SplashScreen.preventAutoHideAsync();
@@ -17,13 +24,16 @@ SplashScreen.preventAutoHideAsync();
 const WELCOME_KEY = "has_seen_welcome";
 
 export default function RootLayout() {
+  // -------------------------------
+  // 1️ State Hooks
+  // -------------------------------
   const [authStatus, setAuthStatus] = useState({
     loading: true,
     user: null,
     hasSeenWelcome: false,
   });
 
-  // 1. Optimized Font Loading
+  // 2️ Font Loading Hook
   const [fontsLoaded, fontError] = useFonts({
     "Sora-Regular": require("../assets/fonts/Sora-Regular.ttf"),
     "Sora-SemiBold": require("../assets/fonts/Sora-SemiBold.ttf"),
@@ -31,64 +41,117 @@ export default function RootLayout() {
     "Adamina-Regular": require("../assets/fonts/Adamina-Regular.ttf"),
   });
 
-  // 2. Combined Initialization
+  // -------------------------------
+  // 3️ Android Transparent Navigation Bar Hook
+  // -------------------------------
   useEffect(() => {
+    if (Platform.OS === "android") {
+      // NavigationBar.setBackgroundColorAsync("transparent");
+      NavigationBar.setButtonStyleAsync("dark"); // dark icons, change to "light" if needed
+      // NavigationBar.setPositionAsync("absolute");
+    }
+  }, []);
+
+  // -------------------------------
+  // 4️ Auth + Welcome Initialization
+  // -------------------------------
+  useEffect(() => {
+    let unsubscribeAuth;
+
     const initializeApp = async () => {
       try {
-        // Run Async task (Welcome Check)
+        // Check if user has seen welcome screen
         const welcomeVal = await AsyncStorage.getItem(WELCOME_KEY);
 
-        // Setup Auth Listener
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
+        // Setup Firebase Auth Listener
+        unsubscribeAuth = onAuthStateChanged(auth, (user) => {
           setAuthStatus({
             loading: false,
             user: user,
             hasSeenWelcome: !!welcomeVal,
           });
-          // Hide splash screen once we know where to go
+          // Hide splash screen once ready
           SplashScreen.hideAsync();
         });
-
-        return unsubscribe;
       } catch (e) {
         console.error(e);
         setAuthStatus((prev) => ({ ...prev, loading: false }));
+        SplashScreen.hideAsync();
       }
     };
 
     initializeApp();
+
+    // Cleanup listener on unmount
+    return () => {
+      if (unsubscribeAuth) unsubscribeAuth();
+    };
   }, []);
 
-  // 3. Early exit for Fonts
+  // -------------------------------
+  // 5️ Early exit for fonts
+  // -------------------------------
   if (!fontsLoaded && !fontError) return null;
 
   const { loading, user, hasSeenWelcome } = authStatus;
 
-  // 4. Loading State
+  // -------------------------------
+  // 6️ Loading State
+  // -------------------------------
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#000" />
       </View>
     );
   }
 
-  // 5. Routing Logic
+  // -------------------------------
+  // 7️ Determine initial route
+  // -------------------------------
   const initialRoute = !hasSeenWelcome
     ? "/welcome"
     : user
       ? "/(main)"
       : "/(auth)/logIn";
 
+  // -------------------------------
+  // 8️ Render App
+  // -------------------------------
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Provider store={store}>
         <SafeAreaProvider>
+          {/* StatusBar hidden for immersive experience */}
           <StatusBar hidden={true} />
+          {/* Redirect to proper route */}
           <Redirect href={initialRoute} />
-          <Slot />
+          {/* Stack navigator */}
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen
+              name="(main)"
+              options={{ animation: "none", gestureEnabled: false }}
+            />
+            <Stack.Screen
+              name="(auth)"
+              options={{ animation: "slide_from_right" }}
+            />
+
+            <Stack.Screen name="welcome" options={{ animation: "none" }} />
+          </Stack>
         </SafeAreaProvider>
       </Provider>
     </GestureHandlerRootView>
   );
 }
+
+// -------------------------------
+// Styles
+// -------------------------------
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});

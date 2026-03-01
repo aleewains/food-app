@@ -60,15 +60,15 @@ const favoriteSlice = createSlice({
         const exists = state.items.find((i) => i.id === item.id);
 
         if (exists) {
-          // If it exists, remove it immediately (Optimistic Delete)
+          // If it exists, remove it immediately
           state.items = state.items.filter((i) => i.id !== item.id);
         } else {
-          // If it doesn't exist, add it immediately (Optimistic Add)
+          // If it doesn't exist, add it immediately
           state.items.unshift({ ...item, type });
         }
       })
       .addCase(toggleFavorite.fulfilled, (state, action) => {
-        // We don't need to do anything here because the UI updated in 'pending'.
+        // don't need to do anything here because the UI updated in 'pending'.
         // But we can ensure state is perfectly synced if the server returned extra data.
       })
       .addCase(toggleFavorite.rejected, (state, action) => {

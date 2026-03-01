@@ -34,6 +34,6 @@ export default function SlideWrapper({ children }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#efefef" }, // Matches drawer background
+  container: { flex: 1, backgroundColor: "#efefef" },
   main: { flex: 1, backgroundColor: "#fff" },
 });

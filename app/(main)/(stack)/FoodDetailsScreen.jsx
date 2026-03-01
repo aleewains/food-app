@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ImageBackground,
   Alert,
+  DeviceEventEmitter,
 } from "react-native";
 import { ChevronLeft, Heart, Star } from "lucide-react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -19,6 +20,7 @@ import { getReviews, clearReviews } from "../../../redux/restaurantSlice"; // Me
 import ItemCard from "../../../components/itemCard";
 import SlideWrapper from "../../../components/slideWrapper";
 import { BottomNav } from "../../../components";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function FoodDetailsScreen() {
   const [selectedItem, setSelectedItem] = useState(null);
@@ -113,7 +115,7 @@ export default function FoodDetailsScreen() {
 
         const newItem = {
           cartItemId: `${item.id}-${Date.now()}-${Math.random()}`,
-          productId: item.id,
+          itemId: item.id,
           name: item.name,
           price: item.price,
           quantity: counts[index],
@@ -126,11 +128,13 @@ export default function FoodDetailsScreen() {
           restaurantName: restaurantData.name,
         };
 
+        // console.log(newItem);
+
         newItem.total =
           newItem.quantity *
           (newItem.price + newItem.addons.reduce((sum, a) => sum + a.price, 0));
         newItem.cartKey =
-          newItem.productId +
+          newItem.itemId +
           "-" +
           (newItem.addons
             .map((a) => a.id)
@@ -182,8 +186,16 @@ export default function FoodDetailsScreen() {
             source={{ uri: restaurantData?.imageUrl }}
             style={styles.headerImage}
           >
+            <LinearGradient
+              colors={["rgba(0,0,0,0.15)", "rgba(0, 0, 0, 0.48)"]}
+              style={StyleSheet.absoluteFillObject}
+            />
             <View style={styles.headerActions}>
-              <TouchableOpacity onPress={handleBack} style={styles.iconCircle}>
+              <TouchableOpacity
+                onPress={handleBack}
+                style={styles.iconCircle}
+                activeOpacity={0.8}
+              >
                 <ChevronLeft size={20} color="#000" />
               </TouchableOpacity>
               <TouchableOpacity
@@ -219,6 +231,7 @@ export default function FoodDetailsScreen() {
                       params: { restaurantId: restaurantData?.id },
                     })
                   }
+                  activeOpacity={0.8}
                 >
                   <Text style={styles.seeReview}> See Review</Text>
                 </TouchableOpacity>
@@ -277,6 +290,10 @@ export default function FoodDetailsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FCFCFD" },
   headerImage: { height: 188, justifyContent: "space-between", padding: 22 },
+  gradientOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.35)",
+  },
   headerActions: {
     flexDirection: "row",
     justifyContent: "space-between",

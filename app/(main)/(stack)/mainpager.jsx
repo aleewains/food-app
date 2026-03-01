@@ -16,6 +16,8 @@ import FavoriteScreen from "../screens/favorite";
 import { useDispatch } from "react-redux";
 import { fetchUserProfile } from "../../../redux/userSlice";
 import { fetchAddresses } from "../../../redux/addressSlice";
+import { fetchOrders } from "../../../redux/orderSlice";
+import { myOrders } from "./myOrders";
 
 const TAB_ORDER = ["home", "location", "cart", "favorite"];
 
@@ -36,9 +38,10 @@ export default function MainPager() {
 
   // Listen for the param change if the component is already mounted
   useEffect(() => {
+    console.log("pressed");
     if (tab && TAB_ORDER.includes(tab)) {
       const index = TAB_ORDER.indexOf(tab);
-      pagerRef.current?.setPageWithoutAnimation(index);
+      pagerRef.current?.setPage(index);
       setActiveTab(tab);
     }
   }, [tab]);
