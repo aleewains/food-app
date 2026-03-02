@@ -17,7 +17,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const router = useRouter();
+  // const router = useRouter();
 
   const handleLogin = async () => {
     try {

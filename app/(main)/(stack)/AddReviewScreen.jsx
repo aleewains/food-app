@@ -55,7 +55,11 @@ const AddReviewScreen = () => {
     return (
       <View style={styles.starRow}>
         {[1, 2, 3, 4, 5].map((index) => (
-          <TouchableOpacity key={index} onPress={() => setRating(index)}>
+          <TouchableOpacity
+            key={index}
+            onPress={() => setRating(index)}
+            activeOpacity={0.6}
+          >
             <Star
               size={32}
               color={index <= rating ? "#FFC529" : "#D3D1D8"}
@@ -129,6 +133,7 @@ const AddReviewScreen = () => {
 
           {/* Submit Button */}
           <TouchableOpacity
+            activeOpacity={0.8}
             style={[styles.submitButton, reviewLoading && { opacity: 0.7 }]}
             onPress={handleSubmit}
             disabled={reviewLoading}

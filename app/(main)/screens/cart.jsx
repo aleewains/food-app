@@ -56,8 +56,6 @@ export default function CartScreen() {
       addons: item.addons ?? [],
     }));
 
-    console.log("sanitixe-iems", sanitizedItems);
-
     const order = {
       restaurantId: cartItems[0].restaurantId,
       restaurantName: cartItems[0].restaurantName,
@@ -67,8 +65,6 @@ export default function CartScreen() {
       delivery,
       total,
     };
-
-    console.log("order", order);
 
     dispatch(createOrder(order));
   };
@@ -182,6 +178,7 @@ export default function CartScreen() {
                 onPress={() =>
                   DeviceEventEmitter.emit("CHANGE_TAB", { tab: "home" })
                 }
+                activeOpacity={0.8}
               >
                 <Text style={styles.emptyBtnText}>Browse Food</Text>
               </TouchableOpacity>
@@ -201,7 +198,7 @@ export default function CartScreen() {
               placeholderTextColor="#C4C4C4"
               style={styles.promoInput}
             />
-            <TouchableOpacity style={styles.applyBtn}>
+            <TouchableOpacity style={styles.applyBtn} activeOpacity={0.8}>
               <Text style={styles.applyText}>Apply</Text>
             </TouchableOpacity>
           </View>
@@ -225,6 +222,7 @@ export default function CartScreen() {
         style={styles.checkoutBtn}
         onPress={handleCheckout}
         disabled={loading}
+        activeOpacity={0.8}
       >
         <Text style={styles.checkoutText}>
           {loading ? "PLACING ORDER..." : "CHECKOUT"}
@@ -281,9 +279,19 @@ const styles = StyleSheet.create({
     height: 38,
     backgroundColor: "#FFFFFF",
     borderRadius: 14,
-    boxShadow: "5px 10px 20px rgba(211, 209, 216, 0.3)",
+
     justifyContent: "center",
     alignItems: "center",
+
+    shadowColor: "rgba(211, 209, 216, 1)",
+    shadowOffset: {
+      width: 5,
+      height: 10,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+
+    elevation: 10,
   },
   title: {
     fontFamily: "Adamina-Regular",
@@ -376,7 +384,6 @@ const styles = StyleSheet.create({
   rightActions: {
     justifyContent: "space-between",
     alignItems: "flex-end",
-    justifyContent: "space-between",
     minHeight: 60,
   },
   removeBtn: { alignSelf: "flex-end" },

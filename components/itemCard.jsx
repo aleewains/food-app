@@ -12,7 +12,11 @@ const ItemCard = ({
   onPressCard,
 }) => {
   return (
-    <TouchableOpacity style={styles.card} onPress={onPressCard}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={onPressCard}
+      activeOpacity={0.8}
+    >
       {/* Favorite Heart */}
       <TouchableOpacity style={styles.heartAction} onPress={onToggleFav}>
         <Heart

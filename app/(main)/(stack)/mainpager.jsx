@@ -38,7 +38,6 @@ export default function MainPager() {
 
   // Listen for the param change if the component is already mounted
   useEffect(() => {
-    console.log("pressed");
     if (tab && TAB_ORDER.includes(tab)) {
       const index = TAB_ORDER.indexOf(tab);
       pagerRef.current?.setPage(index);

@@ -225,12 +225,13 @@ export default function OrdersScreen() {
 
       <View style={styles.buttonRow}>
         <TouchableOpacity
+          activeOpacity={0.8}
           style={styles.cancelBtn}
           onPress={() => handleCancelBtnPress(item.id)}
         >
           <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.trackBtn}>
+        <TouchableOpacity style={styles.trackBtn} activeOpacity={0.8}>
           <Text style={styles.trackText}>Track Order</Text>
         </TouchableOpacity>
       </View>
@@ -289,6 +290,7 @@ export default function OrdersScreen() {
 
       <View style={styles.buttonRow}>
         <TouchableOpacity
+          activeOpacity={0.8}
           style={styles.cancelBtn}
           onPress={() =>
             router.push({
@@ -300,6 +302,7 @@ export default function OrdersScreen() {
           <Text style={styles.cancelText}>Rate</Text>
         </TouchableOpacity>
         <TouchableOpacity
+          activeOpacity={0.8}
           style={styles.trackBtn}
           onPress={() => handleReOrder(item)}
         >
@@ -497,7 +500,19 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     justifyContent: "center",
     alignItems: "center",
-    boxShadow: "11.48px 17.22px 22.96px rgba(211, 209, 216, 0.45)",
+
+    shadowColor: "rgb(211, 209, 216)",
+
+    shadowOffset: {
+      width: 11.48,
+      height: 17.22,
+    },
+
+    shadowOpacity: 0.45,
+
+    shadowRadius: 22.96,
+
+    elevation: 18,
   },
   logo: { width: 60, height: 60, resizeMode: "contain" },
   restaurantName: {
