@@ -20,6 +20,7 @@ import { cancelOrder, fetchOrders } from "../../../redux/orderSlice";
 import { addToCart, clearCart } from "../../../redux/cartSlice";
 import { Header } from "../../../components";
 import { useRouter } from "expo-router";
+import SlideWrapper from "../../../components/slideWrapper";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const INITIAL_TAB_WIDTH = (SCREEN_WIDTH - 25 * 2 - 12) / 2;
@@ -313,125 +314,131 @@ export default function OrdersScreen() {
   );
 
   return (
-    <SafeAreaProvider style={styles.container}>
-      <Header
-        showBackButton={true}
-        title="My Orders"
-        onBackPress={() => {
-          if (router.canGoBack()) router.back();
-          else router.push("/(main)/(stack)/mainpager");
-        }}
-      />
-
-      {/* Tab Switcher */}
-      <View
-        style={styles.tabContainer}
-        onLayout={(e) => {
-          const { width: containerWidth } = e.nativeEvent.layout;
-          setTabWidth((containerWidth - 12) / 2);
-        }}
-      >
-        <Animated.View
-          style={[
-            styles.indicator,
-            { width: tabWidth, transform: [{ translateX }] },
-          ]}
+    <SlideWrapper>
+      <SafeAreaProvider style={styles.container}>
+        <Header
+          showBackButton={true}
+          title="My Orders"
+          onBackPress={() => {
+            if (router.canGoBack()) router.back();
+            else router.push("/(main)/(stack)/mainpager");
+          }}
         />
 
-        {/* Upcoming Tab */}
-        <TouchableOpacity
-          style={styles.tab}
-          onPress={() => handleTabPress("Upcoming", 0)}
-          activeOpacity={0.8}
+        {/* Tab Switcher */}
+        <View
+          style={styles.tabContainer}
+          onLayout={(e) => {
+            const { width: containerWidth } = e.nativeEvent.layout;
+            setTabWidth((containerWidth - 12) / 2);
+          }}
         >
-          <Text
-            ref={upcomingTextRef}
-            style={[styles.tabText, { color: "#fff" }]}
+          <Animated.View
+            style={[
+              styles.indicator,
+              { width: tabWidth, transform: [{ translateX }] },
+            ]}
+          />
+
+          {/* Upcoming Tab */}
+          <TouchableOpacity
+            style={styles.tab}
+            onPress={() => handleTabPress("Upcoming", 0)}
+            activeOpacity={0.8}
           >
-            Upcoming
-          </Text>
-        </TouchableOpacity>
-
-        {/* History Tab */}
-        <TouchableOpacity
-          style={styles.tab}
-          onPress={() => handleTabPress("History", 1)}
-          activeOpacity={0.8}
-        >
-          <Text
-            ref={historyTextRef}
-            style={[styles.tabText, { color: "#9796A1" }]}
-          >
-            History
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.listContainer}>
-        <FlatList
-          data={
-            activeTabRef.current === "Upcoming" ? upcomingOrders : historyOrders
-          }
-          keyExtractor={(item, index) => item.id || index.toString()}
-          renderItem={
-            activeTabRef.current === "Upcoming" ? renderUpcoming : renderHistory
-          }
-          refreshing={loading}
-          showsVerticalScrollIndicator={false}
-          onRefresh={() => dispatch(fetchOrders())}
-          ListFooterComponent={() =>
-            activeTabRef.current === "Upcoming" && lastedOrders.length > 0 ? (
-              <View>
-                <Text style={styles.sectionTitle}>Lasted Orders</Text>
-                {lastedOrders.map((item) => (
-                  <View key={item.id}>{renderHistory({ item })}</View>
-                ))}
-              </View>
-            ) : null
-          }
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>No orders found.</Text>
-          }
-        />
-      </View>
-
-      <Modal visible={modalVisible} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <TouchableOpacity
-              style={styles.closeIcon}
-              onPress={() => setModalVisible(false)}
+            <Text
+              ref={upcomingTextRef}
+              style={[styles.tabText, { color: "#fff" }]}
             >
-              <Text style={{ color: "red", fontSize: 40 }}>×</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.modalTitle}>Select a reason</Text>
-            <View style={styles.dropdownPlaceholder}>
-              <Text style={styles.dropdownText}>{reason}</Text>
-              <Text>▼</Text>
-            </View>
-
-            <Text style={[styles.modalTitle, { marginTop: 25 }]}>
-              Write a description (Optional)
+              Upcoming
             </Text>
-            <TextInput
-              style={styles.textArea}
-              multiline
-              placeholder="Tell us more..."
-              value={description}
-              onChangeText={setDescription}
-            />
+          </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.confirmCancelBtn}
-              onPress={handleFinalCancel}
+          {/* History Tab */}
+          <TouchableOpacity
+            style={styles.tab}
+            onPress={() => handleTabPress("History", 1)}
+            activeOpacity={0.8}
+          >
+            <Text
+              ref={historyTextRef}
+              style={[styles.tabText, { color: "#9796A1" }]}
             >
-              <Text style={styles.confirmCancelText}>CANCEL ORDER</Text>
-            </TouchableOpacity>
-          </View>
+              History
+            </Text>
+          </TouchableOpacity>
         </View>
-      </Modal>
-    </SafeAreaProvider>
+
+        <View style={styles.listContainer}>
+          <FlatList
+            data={
+              activeTabRef.current === "Upcoming"
+                ? upcomingOrders
+                : historyOrders
+            }
+            keyExtractor={(item, index) => item.id || index.toString()}
+            renderItem={
+              activeTabRef.current === "Upcoming"
+                ? renderUpcoming
+                : renderHistory
+            }
+            refreshing={loading}
+            showsVerticalScrollIndicator={false}
+            onRefresh={() => dispatch(fetchOrders())}
+            ListFooterComponent={() =>
+              activeTabRef.current === "Upcoming" && lastedOrders.length > 0 ? (
+                <View>
+                  <Text style={styles.sectionTitle}>Lasted Orders</Text>
+                  {lastedOrders.map((item) => (
+                    <View key={item.id}>{renderHistory({ item })}</View>
+                  ))}
+                </View>
+              ) : null
+            }
+            ListEmptyComponent={
+              <Text style={styles.emptyText}>No orders found.</Text>
+            }
+          />
+        </View>
+
+        <Modal visible={modalVisible} transparent animationType="slide">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <TouchableOpacity
+                style={styles.closeIcon}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={{ color: "red", fontSize: 40 }}>×</Text>
+              </TouchableOpacity>
+
+              <Text style={styles.modalTitle}>Select a reason</Text>
+              <View style={styles.dropdownPlaceholder}>
+                <Text style={styles.dropdownText}>{reason}</Text>
+                <Text>▼</Text>
+              </View>
+
+              <Text style={[styles.modalTitle, { marginTop: 25 }]}>
+                Write a description (Optional)
+              </Text>
+              <TextInput
+                style={styles.textArea}
+                multiline
+                placeholder="Tell us more..."
+                value={description}
+                onChangeText={setDescription}
+              />
+
+              <TouchableOpacity
+                style={styles.confirmCancelBtn}
+                onPress={handleFinalCancel}
+              >
+                <Text style={styles.confirmCancelText}>CANCEL ORDER</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      </SafeAreaProvider>
+    </SlideWrapper>
   );
 }
 

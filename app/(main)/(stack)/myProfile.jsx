@@ -29,6 +29,7 @@ import {
 } from "../../../redux/userSlice";
 import { KeyboardAvoidingView, Platform } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import SlideWrapper from "../../../components/slideWrapper";
 
 const { width } = Dimensions.get("window");
 
@@ -113,145 +114,153 @@ export default function ProfileScreen() {
     }
   };
 
-  if (loading) return <ActivityIndicator style={{ flex: 1 }} color="#FE724C" />;
+  if (loading)
+    return (
+      <ActivityIndicator style={{ flex: 1 }} size="large" color="#FE724C" />
+    );
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0} // adjust if you have headers
-    >
-      <StatusBar hidden={true} />
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        style={styles.container}
-        h
-        showsVerticalScrollIndicator={false}
+    <SlideWrapper>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0} // adjust if you have headers
       >
-        <View style={styles.mainWrapper}>
-          <View style={styles.orangeBg} pointerEvents="none">
-            <Image
-              source={require("../../../assets/profileBg.png")}
-              style={styles.bgImage}
+        <StatusBar hidden={true} />
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          style={styles.container}
+          h
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.mainWrapper}>
+            <View style={styles.orangeBg} pointerEvents="none">
+              <Image
+                source={require("../../../assets/profileBg.png")}
+                style={styles.bgImage}
+              />
+            </View>
+
+            <View style={styles.header}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (router.canGoBack()) {
+                    router.back();
+                  } else {
+                    DeviceEventEmitter.emit("CHANGE_TAB", { tab: "home" });
+                    router.replace("/(main)/(stack)/mainpager");
+                  }
+                }}
+                style={styles.iconCircle}
+              >
+                <ChevronLeft size={20} color="#000" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Profile Content */}
+            <View style={styles.content}>
+              <View style={styles.imageContainer}>
+                <Image
+                  source={
+                    userData?.profileImage
+                      ? { uri: userData.profileImage }
+                      : require("../../../assets/profile.png")
+                  }
+                  style={styles.profileImage}
+                />
+                {isEditing && (
+                  <TouchableOpacity
+                    style={styles.cameraBtn}
+                    onPress={pickImage}
+                  >
+                    {uploading ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Camera size={20} color="#fff" />
+                    )}
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <Text style={styles.userName}>
+                {userData?.fullName || "Guest User"}
+              </Text>
+
+              <TouchableOpacity onPress={() => setIsEditing(!isEditing)}>
+                <Text style={styles.editProfileText}>
+                  {isEditing ? "Cancel" : "Edit Profile"}
+                </Text>
+              </TouchableOpacity>
+
+              <View style={styles.infoSection}>
+                <CustomInput
+                  label="Full Name"
+                  value={localData.fullName || ""}
+                  editable={isEditing}
+                  onChangeText={(t) =>
+                    setLocalData((prev) => ({ ...prev, fullName: t }))
+                  }
+                />
+
+                <CustomInput
+                  label="Email"
+                  value={auth.currentUser?.email}
+                  editable={false}
+                />
+
+                <CustomInput
+                  label="Phone"
+                  value={localData.phone || ""}
+                  editable={isEditing}
+                  countryCode={countryCode}
+                  onCountryPress={() => setShowPicker(true)}
+                  onChangeText={(t) =>
+                    setLocalData((prev) => ({ ...prev, phone: t }))
+                  }
+                  keyboardType="phone-pad"
+                />
+
+                <CustomInput
+                  label="Address"
+                  value={localData.address || ""}
+                  editable={isEditing}
+                  onChangeText={(t) =>
+                    setLocalData((prev) => ({ ...prev, address: t }))
+                  }
+                />
+
+                {isEditing && (
+                  <TouchableOpacity
+                    style={styles.saveBtn}
+                    onPress={handleSaveProfile}
+                  >
+                    <Text style={styles.saveBtnText}>Save Changes</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
+            <CountryPicker
+              show={showPicker}
+              onBackdropPress={() => setShowPicker(false)}
+              pickerButtonOnPress={(item) => {
+                setCountryCode(item.dial_code);
+                setShowPicker(false);
+              }}
+              style={{
+                modal: { height: 500 },
+                backdrop: {
+                  backgroundColor: "",
+                },
+                line: {
+                  backgroundColor: "#FE724C",
+                },
+              }}
             />
           </View>
-
-          <View style={styles.header}>
-            <TouchableOpacity
-              onPress={() => {
-                if (router.canGoBack()) {
-                  router.back();
-                } else {
-                  DeviceEventEmitter.emit("CHANGE_TAB", { tab: "home" });
-                  router.replace("/(main)/(stack)/mainpager");
-                }
-              }}
-              style={styles.iconCircle}
-            >
-              <ChevronLeft size={20} color="#000" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Profile Content */}
-          <View style={styles.content}>
-            <View style={styles.imageContainer}>
-              <Image
-                source={
-                  userData?.profileImage
-                    ? { uri: userData.profileImage }
-                    : require("../../../assets/profile.png")
-                }
-                style={styles.profileImage}
-              />
-              {isEditing && (
-                <TouchableOpacity style={styles.cameraBtn} onPress={pickImage}>
-                  {uploading ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Camera size={20} color="#fff" />
-                  )}
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <Text style={styles.userName}>
-              {userData?.fullName || "Guest User"}
-            </Text>
-
-            <TouchableOpacity onPress={() => setIsEditing(!isEditing)}>
-              <Text style={styles.editProfileText}>
-                {isEditing ? "Cancel" : "Edit Profile"}
-              </Text>
-            </TouchableOpacity>
-
-            <View style={styles.infoSection}>
-              <CustomInput
-                label="Full Name"
-                value={localData.fullName || ""}
-                editable={isEditing}
-                onChangeText={(t) =>
-                  setLocalData((prev) => ({ ...prev, fullName: t }))
-                }
-              />
-
-              <CustomInput
-                label="Email"
-                value={auth.currentUser?.email}
-                editable={false}
-              />
-
-              <CustomInput
-                label="Phone"
-                value={localData.phone || ""}
-                editable={isEditing}
-                countryCode={countryCode}
-                onCountryPress={() => setShowPicker(true)}
-                onChangeText={(t) =>
-                  setLocalData((prev) => ({ ...prev, phone: t }))
-                }
-                keyboardType="phone-pad"
-              />
-
-              <CustomInput
-                label="Address"
-                value={localData.address || ""}
-                editable={isEditing}
-                onChangeText={(t) =>
-                  setLocalData((prev) => ({ ...prev, address: t }))
-                }
-              />
-
-              {isEditing && (
-                <TouchableOpacity
-                  style={styles.saveBtn}
-                  onPress={handleSaveProfile}
-                >
-                  <Text style={styles.saveBtnText}>Save Changes</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-
-          <CountryPicker
-            show={showPicker}
-            onBackdropPress={() => setShowPicker(false)}
-            pickerButtonOnPress={(item) => {
-              setCountryCode(item.dial_code);
-              setShowPicker(false);
-            }}
-            style={{
-              modal: { height: 500 },
-              backdrop: {
-                backgroundColor: "",
-              },
-              line: {
-                backgroundColor: "#FE724C",
-              },
-            }}
-          />
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SlideWrapper>
   );
 }
 
