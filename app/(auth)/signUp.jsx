@@ -22,7 +22,7 @@ const Login = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // const router = useRouter()
+  // const router = useRouter();
 
   const handleCreate = async () => {
     if (!fullName || !email || !password) {
@@ -43,7 +43,6 @@ const Login = () => {
       await updateProfile(user, { displayName: fullName });
 
       alert("Account Created!");
-      router.replace("/");
     } catch (error) {
       console.log("Signup error:", error);
       alert(error.message);

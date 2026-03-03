@@ -22,7 +22,7 @@ const Login = () => {
   const handleLogin = async () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.replace("/"); //goes to home
+      router.replace("/(main)"); //goes to home
     } catch (error) {
       Alert.alert(error.message);
     }
