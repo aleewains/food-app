@@ -76,12 +76,26 @@ export default function ProfileScreen() {
   const handleImageUpload = async (uri) => {
     setUploading(true);
     try {
-      const publicUrl = await storageService.uploadUserImage(uri);
+      // Pass the old URL so the old image gets deleted from Supabase
+      const oldUrl = userData?.profileImage || null;
+      const publicUrl = await storageService.uploadUserImage(uri, oldUrl);
+
       if (publicUrl) {
-        await userService.updateProfileImage(publicUrl);
-        setUserData((prev) => ({ ...prev, profileImage: publicUrl }));
+        // Update Redux store + Firestore via your existing thunk
+        dispatch(
+          updateUserProfile({
+            ...localData,
+            profileImage: publicUrl,
+            countryCode,
+          }),
+        );
+        // Also update local state immediately for instant UI feedback
+        setLocalData((prev) => ({ ...prev, profileImage: publicUrl }));
+      } else {
+        Alert.alert("Error", "Failed to upload image.");
       }
     } catch (error) {
+      console.log(error);
       Alert.alert("Error", "Failed to upload image.");
     } finally {
       setUploading(false);
@@ -114,10 +128,10 @@ export default function ProfileScreen() {
     }
   };
 
-  if (loading)
-    return (
-      <ActivityIndicator style={{ flex: 1 }} size="large" color="#FE724C" />
-    );
+  // if (loading)
+  //   return (
+  //     <ActivityIndicator style={{ flex: 1 }} size="large" color="#FE724C" />
+  //   );
 
   return (
     <SlideWrapper>
@@ -309,7 +323,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   content: {
-    marginTop: 20, // Adjusted to make profile image sit nicely on the BG
+    marginTop: 50, // Adjusted to make profile image sit nicely on the BG
     alignItems: "center",
     paddingHorizontal: 20,
   },

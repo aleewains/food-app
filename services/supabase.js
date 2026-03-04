@@ -35,7 +35,6 @@ class SupabaseService {
     try {
       const { error } = await supabase.storage.from(this.bucket).remove([path]);
       if (error) console.warn("Supabase delete warning:", error.message);
-      else console.log("Deleted old image:", path);
     } catch (err) {
       console.warn("Supabase delete failed silently:", err.message);
     }
@@ -89,7 +88,7 @@ class SupabaseService {
 
       return newUrl;
     } catch (err) {
-      console.error("Supabase Upload Error:", err.message);
+      console.log("Supabase Upload Error:", err.message);
       return null;
     }
   }
