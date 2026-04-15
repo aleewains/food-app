@@ -18,6 +18,7 @@ const CustomInput = ({
   countryCode, // "+92", etc.
   onCountryPress,
   keyboardType = "default", // Useful for phone numbers
+  error,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -58,6 +59,7 @@ const CustomInput = ({
           onBlur={() => setIsFocused(false)}
           keyboardType={keyboardType}
         />
+        {error && <Text style={styles.errorText}>{error}</Text>}
 
         {secureTextEntry && editable && (
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
@@ -114,5 +116,10 @@ const styles = StyleSheet.create({
     height: 24,
     backgroundColor: "#E6E6E6",
     marginHorizontal: 10,
+  },
+  errorText: {
+    color: "red",
+    fontSize: 14,
+    fontFamily: "Adamina-Regular",
   },
 });

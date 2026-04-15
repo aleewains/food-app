@@ -101,8 +101,8 @@ export default function FavoritesScreen() {
   const renderRestaurant = ({ item }) => (
     <RestaurantCard
       name={item.name}
-      rating={item.rating || "4.5"}
-      reviewCount={item.reviewCount || "100"}
+      rating={item.averageRating || 0}
+      reviewCount={item.reviewCount || 0}
       deliveryTime={item.deliveryTime || "25-30 min"}
       deliveryFee={item.deliveryFee} // 0 will show "Free Delivery" per your component logic
       isVerified={item.isVerified}

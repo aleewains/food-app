@@ -96,8 +96,7 @@ export default FoodDetailModal;
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    height: "50%",
-    // backgroundColor: "rgba(0,0,0,0.4)",
+    height: "100%",
     justifyContent: "flex-end", //  THIS pushes modal to bottom
   },
 

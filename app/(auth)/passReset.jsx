@@ -9,7 +9,7 @@ import {
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../utils/firebase";
-import { router, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import CustomInput from "../../components/CustomInput";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { sendPasswordResetEmail } from "firebase/auth";

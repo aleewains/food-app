@@ -74,7 +74,9 @@ const favoriteSlice = createSlice({
       .addCase(toggleFavorite.rejected, (state, action) => {
         // IMPORTANT: If Firebase fails (no internet, etc.),
         // you might want to alert the user or refresh the list to undo the change.
-        state.error = action.payload;
+        // state.error = action.payload;
+        state.error = action.error.message;
+        state.loading = false;
       });
   },
 });

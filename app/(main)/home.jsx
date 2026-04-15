@@ -59,7 +59,6 @@ export default function HomeScreen() {
 
   useEffect(() => {
     dispatch(fetchRestaurants());
-    dispatch(fetchFavorites());
   }, [dispatch]);
 
   const filteredRestaurants = useMemo(() => {

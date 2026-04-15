@@ -15,6 +15,24 @@ import {
 const RESTAURANTS_COLLECTION = "restaurants";
 
 /**
+ * HELPER: Waits for Firebase Auth to initialize and returns the current user.
+ * Fixes the race condition where auth.currentUser is null on app start.
+ */
+const getAuthUser = () => {
+  return new Promise((resolve, reject) => {
+    // If auth is already resolved, use it immediately
+    if (auth.currentUser) return resolve(auth.currentUser);
+
+    // Otherwise wait for the first auth state emission
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      unsubscribe();
+      if (user) resolve(user);
+      else reject(new Error("No authenticated user found"));
+    });
+  });
+};
+
+/**
  * HELPER: Converts Firestore Timestamps to plain numbers (milliseconds)
  * to avoid Redux "Non-serializable value" errors.
  */
@@ -30,14 +48,9 @@ const sanitizeData = (data) => {
 };
 
 const userService = {
-  /**
-   * Fetch user profile data
-   */
   getUserProfile: async () => {
     try {
-      const user = auth.currentUser;
-      if (!user) throw new Error("No authenticated user found");
-
+      const user = await getAuthUser(); // ← fixed
       const userDoc = await getDoc(doc(db, "users", user.uid));
       return userDoc.exists() ? sanitizeData(userDoc.data()) : null;
     } catch (error) {
@@ -48,9 +61,7 @@ const userService = {
 
   updateUserProfile: async (data) => {
     try {
-      const user = auth.currentUser;
-      if (!user) throw new Error("No authenticated user found");
-
+      const user = await getAuthUser(); // ← fixed
       const userRef = doc(db, "users", user.uid);
       await setDoc(userRef, data, { merge: true });
       return true;
@@ -62,7 +73,7 @@ const userService = {
 
   updateProfileImage: async (url) => {
     try {
-      const user = auth.currentUser;
+      const user = await getAuthUser(); // ← fixed
       const userRef = doc(db, "users", user.uid);
       await updateDoc(userRef, { profileImage: url });
       return true;
@@ -82,22 +93,16 @@ const userService = {
       const restaurants = [];
 
       for (const restaurantDoc of querySnapshot.docs) {
-        const rawData = restaurantDoc.data();
-        const data = sanitizeData(rawData); // Sanitize the restaurant data
-
+        const data = sanitizeData(restaurantDoc.data());
         const menuSnapshot = await getDocs(
           collection(db, RESTAURANTS_COLLECTION, restaurantDoc.id, "menu"),
         );
         const menu = menuSnapshot.docs.map((mDoc) => ({
           id: mDoc.id,
-          ...sanitizeData(mDoc.data()), // Sanitize each menu item
+          ...sanitizeData(mDoc.data()),
         }));
 
-        restaurants.push({
-          id: restaurantDoc.id,
-          ...data,
-          menu: menu,
-        });
+        restaurants.push({ id: restaurantDoc.id, ...data, menu });
       }
       return restaurants;
     } catch (error) {
@@ -108,9 +113,7 @@ const userService = {
 
   toggleFavorite: async (item, type) => {
     try {
-      const user = auth.currentUser;
-      if (!user) throw new Error("No authenticated user found");
-
+      const user = await getAuthUser(); // ← fixed
       const favRef = doc(db, "users", user.uid, "favorites", item.id);
       const favDoc = await getDoc(favRef);
 
@@ -118,18 +121,14 @@ const userService = {
         await deleteDoc(favRef);
         return { id: item.id, isFavorite: false };
       } else {
-        // Prepare data for Firestore
         const favData = {
-          // ...item,
           id: item.id,
           type: type,
           addedAt: serverTimestamp(),
         };
         delete favData.menu;
-
         await setDoc(favRef, favData);
 
-        // Return sanitized version for Redux (serverTimestamp  not be available yet, so use Date.now())
         return {
           ...favData,
           addedAt: Date.now(),
@@ -145,18 +144,15 @@ const userService = {
 
   getFavorites: async () => {
     try {
-      const user = auth.currentUser;
-      if (!user) throw new Error("No authenticated user found");
-
+      const user = await getAuthUser(); // ← fixed
       const q = query(
         collection(db, "users", user.uid, "favorites"),
         orderBy("addedAt", "desc"),
       );
-
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map((doc) => ({
         id: doc.id,
-        ...sanitizeData(doc.data()), // Sanitize the timestamp "addedAt"
+        ...sanitizeData(doc.data()),
       }));
     } catch (error) {
       console.error("Error fetching favorites:", error);

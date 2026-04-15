@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   Image,
   ImageBackground,
+  Modal,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import {
@@ -17,16 +19,56 @@ import { auth } from "../../utils/firebase";
 import { router, useRouter } from "expo-router";
 import { useFonts } from "expo-font";
 import CustomInput from "../../components/CustomInput";
+import { useToast } from "../../context/ToastContext";
 
 const Login = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState({});
+
+  const { showToast } = useToast();
+
   // const router = useRouter();
 
+  const isValidEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+
+  const getFirebaseError = (error) => {
+    switch (error.code) {
+      case "auth/email-already-in-use":
+        return "This email is already registered";
+      case "auth/invalid-email":
+        return "Invalid email format";
+      case "auth/weak-password":
+        return "Password should be at least 6 characters";
+      default:
+        return "Something went wrong";
+    }
+  };
+
   const handleCreate = async () => {
+    let newErrors = {};
     if (!fullName || !email || !password) {
-      alert("Please fill all fields");
+      setModalMessage("Please fill all fields");
+      setModalVisible(true);
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      newErrors.email = "Enter a valid email address";
+    }
+
+    if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors); //  only shows after button click
       return;
     }
 
@@ -42,10 +84,11 @@ const Login = () => {
 
       await updateProfile(user, { displayName: fullName });
 
-      alert("Account Created!");
+      showToast("Account Created!", "success");
     } catch (error) {
       console.log("Signup error:", error);
-      alert(error.message);
+      setModalMessage(getFirebaseError(error));
+      setModalVisible(true);
     }
   };
 
@@ -77,7 +120,11 @@ const Login = () => {
         label="E-mail"
         placeholder="Enter Your E-mail"
         value={email}
-        onChangeText={setEmail}
+        onChangeText={(txt) => {
+          setEmail(txt);
+          setErrors((prev) => ({ ...prev, email: "" }));
+        }}
+        error={errors.email}
       />
 
       <CustomInput
@@ -85,9 +132,17 @@ const Login = () => {
         placeholder="••••••••"
         secureTextEntry
         value={password}
-        onChangeText={setPassword}
+        onChangeText={(txt) => {
+          setPassword(txt);
+          setErrors((prev) => ({ ...prev, password: "" }));
+        }}
+        error={errors.password}
       />
-      <TouchableOpacity onPress={handleCreate} style={styles.button}>
+      <TouchableOpacity
+        onPress={handleCreate}
+        style={styles.button}
+        activeOpacity={0.8}
+      >
         <Text style={styles.buttonT}>SIGN UP</Text>
       </TouchableOpacity>
       <Text
@@ -96,6 +151,25 @@ const Login = () => {
       >
         Already have an account? <Text style={styles.loginText}>Login</Text>
       </Text>
+      <Modal
+        transparent
+        visible={modalVisible}
+        animationType="fade"
+        statusBarTranslucent={true}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalText}>{modalMessage}</Text>
+
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -109,9 +183,7 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   ellipseC: {
-    // flex: 1,
     flexDirection: "row",
-    // top: -301,
   },
   topRight: {
     // top: -1,
@@ -127,7 +199,6 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     fontFamily: "Adamina-Regular",
     marginBottom: 20,
-    // textAlign: 'center',
     color: "#000000",
   },
   input: {
@@ -168,5 +239,37 @@ const styles = StyleSheet.create({
   },
   loginText: {
     color: "#ff6f4f",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.24)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  modalBox: {
+    width: "80%",
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 20,
+    alignItems: "center",
+  },
+
+  modalText: {
+    fontSize: 16,
+    marginBottom: 15,
+    textAlign: "center",
+  },
+
+  modalButton: {
+    backgroundColor: "#ff6f4f",
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 20,
+  },
+
+  modalButtonText: {
+    color: "#fff",
+    fontSize: 16,
   },
 });

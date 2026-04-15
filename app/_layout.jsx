@@ -17,6 +17,7 @@ import { useFonts } from "expo-font";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as NavigationBar from "expo-navigation-bar";
+import { ToastProvider } from "../context/ToastContext";
 
 // Prevent the splash screen from hiding automatically
 SplashScreen.preventAutoHideAsync();
@@ -121,25 +122,27 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Provider store={store}>
-        <SafeAreaProvider>
-          {/* StatusBar hidden for immersive experience */}
-          <StatusBar hidden={true} />
-          {/* Redirect to proper route */}
-          <Redirect href={initialRoute} />
-          {/* Stack navigator */}
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen
-              name="(main)"
-              options={{ animation: "none", gestureEnabled: false }}
-            />
-            <Stack.Screen
-              name="(auth)"
-              options={{ animation: "slide_from_right" }}
-            />
+        <ToastProvider>
+          <SafeAreaProvider>
+            {/* StatusBar hidden for immersive experience */}
+            <StatusBar hidden={true} />
+            {/* Redirect to proper route */}
+            <Redirect href={initialRoute} />
+            {/* Stack navigator */}
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen
+                name="(main)"
+                options={{ animation: "none", gestureEnabled: false }}
+              />
+              <Stack.Screen
+                name="(auth)"
+                options={{ animation: "slide_from_right" }}
+              />
 
-            <Stack.Screen name="welcome" options={{ animation: "none" }} />
-          </Stack>
-        </SafeAreaProvider>
+              <Stack.Screen name="welcome" options={{ animation: "none" }} />
+            </Stack>
+          </SafeAreaProvider>
+        </ToastProvider>
       </Provider>
     </GestureHandlerRootView>
   );

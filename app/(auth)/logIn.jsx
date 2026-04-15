@@ -10,21 +10,47 @@ import {
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../utils/firebase";
-import { router, useRouter } from "expo-router";
+import { router } from "expo-router";
 import CustomInput from "../../components/CustomInput";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState({});
+  const [authError, setAuthError] = useState("");
+
   // const router = useRouter();
 
   const handleLogin = async () => {
+    let newErrors = {};
+
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Enter a valid email address";
+    }
+    if (!password.trim()) {
+      newErrors.password = "Password is required";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors); //  only shows after button click
+      return;
+    }
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.replace("/(main)"); //goes to home
     } catch (error) {
-      Alert.alert(error.message);
+      const messages = {
+        "auth/invalid-credential": "Wrong email or password.",
+        "auth/invalid-email": "Please enter a valid email.",
+        "auth/user-disabled": "This account has been disabled.",
+        "auth/too-many-requests": "Too many attempts. Try again later.",
+        "auth/network-request-failed": "Check your internet connection.",
+      };
+      setAuthError(messages[error.code] || "Something went wrong. Try again.");
     }
   };
 
@@ -56,15 +82,29 @@ const Login = () => {
           label="E-mail"
           placeholder="Your email or phone"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(txt) => {
+            setEmail(txt);
+            setErrors((prev) => ({ ...prev, email: "" }));
+          }}
+          error={errors.email}
         />
         <CustomInput
           label="Password"
           placeholder="••••••••"
           secureTextEntry
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(txt) => {
+            setPassword(txt);
+            setErrors((prev) => ({ ...prev, password: "" }));
+          }}
+          error={errors.password}
         />
+        {authError ? (
+          <View style={styles.errorBanner}>
+            <Ionicons name="alert-circle-outline" size={18} color="#FE724C" />
+            <Text style={styles.errorBannerText}>{authError}</Text>
+          </View>
+        ) : null}
       </View>
       <Text
         style={styles.forget}
@@ -73,7 +113,11 @@ const Login = () => {
         Forgot password?
       </Text>
 
-      <TouchableOpacity onPress={handleLogin} style={styles.button}>
+      <TouchableOpacity
+        onPress={handleLogin}
+        style={styles.button}
+        activeOpacity={0.8}
+      >
         <Text style={styles.buttonT}>Login</Text>
       </TouchableOpacity>
       <Text
@@ -177,5 +221,24 @@ const styles = StyleSheet.create({
   },
   loginText: {
     color: "#ff6f4f",
+  },
+  errorBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#FFF0ED",
+    borderLeftWidth: 3,
+    borderLeftColor: "#FE724C",
+    borderRadius: 8,
+    marginHorizontal: 25,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 8,
+  },
+  errorBannerText: {
+    color: "#FE724C",
+    fontFamily: "Adamina-Regular",
+    fontSize: 14,
+    flexShrink: 1,
   },
 });
