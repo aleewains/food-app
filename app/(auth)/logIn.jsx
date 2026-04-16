@@ -13,8 +13,12 @@ import { auth } from "../../utils/firebase";
 import { router } from "expo-router";
 import CustomInput from "../../components/CustomInput";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useTheme } from "../../theme";
 
 const Login = () => {
+  const { colors, spacing, radius, typography, shadows } = useTheme();
+  const styles = getStyles(colors, spacing, radius, typography, shadows);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
@@ -60,7 +64,7 @@ const Login = () => {
         style={styles.backButton}
         onPress={() => router.push("/(auth)/signUp")}
       >
-        <Ionicons name="chevron-back" size={22} color="black" />
+        <Ionicons name="chevron-back" size={22} color={colors.textPrimary} />
       </TouchableOpacity>
       <View style={styles.ellipseC}>
         <Image
@@ -101,7 +105,11 @@ const Login = () => {
         />
         {authError ? (
           <View style={styles.errorBanner}>
-            <Ionicons name="alert-circle-outline" size={18} color="#FE724C" />
+            <Ionicons
+              name="alert-circle-outline"
+              size={18}
+              color={colors.textError}
+            />
             <Text style={styles.errorBannerText}>{authError}</Text>
           </View>
         ) : null}
@@ -132,113 +140,107 @@ const Login = () => {
 
 export default Login;
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#FFFFFF",
-    width: "100%",
-    height: "100%",
-  },
-  backButton: {
-    position: "absolute",
-    // top: height > 700 ? 60 : 40,
-    // right: 0,
-    width: 38,
-    height: 38,
-    top: 37,
-    left: 27,
-    backgroundColor: "#FFFFFF",
-    // borderWidth: 2,
-    // borderColor: "#111719",
-    borderRadius: 12,
-    // paddingVertical: 5,
-    // paddingHorizontal: 15,
-    zIndex: 1,
-    // shadowColor: "#D3D1D840"
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#D3D1D8",
-    shadowOpacity: 0.3,
-    shadowRadius: 20, // Blur radius
-    elevation: 5,
-  },
-  ellipseC: {
-    // flex: 1,
-    flexDirection: "row",
-    // top: -301,
-  },
-  topRight: {
-    // top: -1,
-    left: -49,
-  },
-  topRight2: {
-    left: 107,
-  },
-  title: {
-    marginTop: 100,
-    left: 26,
-    fontSize: 36.41,
-    fontWeight: "400",
-    fontFamily: "Adamina-Regular",
-    marginBottom: 20,
-    // textAlign: 'center',
-    color: "#000000",
-  },
+const getStyles = (colors, spacing, radius, typography, shadows) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: colors.background,
+      flex: 1,
+    },
 
-  button: {
-    width: 248,
-    height: 60,
-    backgroundColor: "#FE724C",
-    borderRadius: 40,
-    alignSelf: "center",
-    alignItems: "center",
-    // marginHorizontal: 25,
-    paddingVertical: 18,
-    marginTop: 10,
-    shadowColor: "#FE724C",
-    shadowRadius: 10,
-  },
-  buttonT: {
-    color: "#fff",
-    fontFamily: "Adamina-Regular",
-    fontSize: 20,
-    letterSpacing: 1,
-  },
-  forget: {
-    textAlign: "center",
-    fontFamily: "Adamina-Regular",
-    fontSize: 16,
-    fontWeight: "400",
-    color: "#FE724C",
-    marginVertical: 10,
-    lineHeight: "100%",
-  },
-  createAcc: {
-    textAlign: "center",
-    fontFamily: "Adamina-Regular",
-    fontSize: 16,
-    color: "#555",
-    marginVertical: 30,
-  },
-  loginText: {
-    color: "#ff6f4f",
-  },
-  errorBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: "#FFF0ED",
-    borderLeftWidth: 3,
-    borderLeftColor: "#FE724C",
-    borderRadius: 8,
-    marginHorizontal: 25,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    marginBottom: 8,
-  },
-  errorBannerText: {
-    color: "#FE724C",
-    fontFamily: "Adamina-Regular",
-    fontSize: 14,
-    flexShrink: 1,
-  },
-});
+    backButton: {
+      position: "absolute",
+      width: 38,
+      height: 38,
+      top: 37,
+      left: 27,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      zIndex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: colors.shadowSoft,
+      ...shadows.card,
+    },
+
+    ellipseC: {
+      flexDirection: "row",
+    },
+
+    topRight: {
+      left: -49,
+    },
+
+    topRight2: {
+      left: 107,
+    },
+
+    title: {
+      marginTop: 100,
+      marginLeft: spacing.xl,
+      fontSize: typography.size.h1,
+      fontFamily: typography.font.regular,
+      marginBottom: spacing.xl,
+      color: colors.textPrimary,
+    },
+
+    button: {
+      width: 248,
+      height: 60,
+      backgroundColor: colors.primary,
+      borderRadius: radius.pill,
+      alignSelf: "center",
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: spacing.md,
+      shadowColor: colors.primaryShadow,
+      ...shadows.cta,
+    },
+
+    buttonT: {
+      color: colors.textInverse,
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.xl,
+      letterSpacing: 1,
+    },
+
+    forget: {
+      textAlign: "center",
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.lg,
+      color: colors.primary,
+      marginVertical: spacing.sm,
+    },
+
+    createAcc: {
+      textAlign: "center",
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.lg,
+      color: colors.textSecondary,
+      marginVertical: spacing.xl,
+    },
+
+    loginText: {
+      color: colors.primary,
+    },
+
+    errorBanner: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      backgroundColor: colors.errorBg,
+      borderLeftWidth: 3,
+      borderLeftColor: colors.errorBorder,
+      borderRadius: radius.sm,
+      marginHorizontal: spacing.xl,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.lg,
+      marginBottom: spacing.sm,
+    },
+
+    errorBannerText: {
+      color: colors.textError,
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.md,
+      flexShrink: 1,
+    },
+  });

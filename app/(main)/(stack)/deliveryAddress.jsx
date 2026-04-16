@@ -149,7 +149,7 @@ export default function DeliveryAddress() {
                   style={styles.iconBtn}
                   onPress={() =>
                     router.push({
-                      pathname: "/drawer/addAddress",
+                      pathname: "/addAddress",
                       params: { id: item.id, data: JSON.stringify(item) },
                     })
                   }

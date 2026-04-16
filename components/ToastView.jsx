@@ -2,8 +2,10 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
 const ToastView = ({ toast }) => {
+  if (!toast) return null;
+
   return (
-    <View style={styles.overlay}>
+    <View style={styles.container}>
       <View
         style={[
           styles.toast,
@@ -19,46 +21,26 @@ const ToastView = ({ toast }) => {
 export default ToastView;
 
 const styles = StyleSheet.create({
-  overlay: {
+  container: {
     position: "absolute",
-    top: 0,
+    top: 60,
     left: 0,
     right: 0,
-    bottom: 0,
-
-    justifyContent: "center",
     alignItems: "center",
-
-    backgroundColor: "rgba(0,0,0,0.15)", // soft dim background
+    zIndex: 9999,
   },
 
   toast: {
-    minWidth: 200,
-    maxWidth: "80%",
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 16,
-
-    alignItems: "center",
-
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 5,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 12,
   },
 
-  success: {
-    backgroundColor: "#22c55e",
-  },
-
-  error: {
-    backgroundColor: "#ef4444",
-  },
+  success: { backgroundColor: "#22c55e" },
+  error: { backgroundColor: "#ef4444" },
 
   text: {
     color: "#fff",
-    fontSize: 16,
     fontWeight: "600",
-    textAlign: "center",
   },
 });

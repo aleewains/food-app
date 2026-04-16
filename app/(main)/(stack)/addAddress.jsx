@@ -117,95 +117,98 @@ const AddAddressScreen = () => {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: "#FCFCFD" }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.header}>
-          {/* Column 1: Back Button */}
-          <View style={styles.headerLeft}>
+        <View style={styles.mainWrapper}>
+          <View style={styles.header}>
+            {/* Column 1: Back Button */}
+            <View style={styles.headerLeft}>
+              <TouchableOpacity
+                onPress={() => router.back()}
+                style={styles.backBtn}
+              >
+                <ChevronLeft size={22} color="#000" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Column 2: Centered Title */}
+            <View style={styles.headerCenter}>
+              <Text style={styles.title}>
+                {addressId ? "Edit address" : "Add new address"}
+              </Text>
+            </View>
+
+            {/* Column 3: Empty Placeholder (Important for Balance) */}
+            <View style={styles.headerRight} />
+          </View>
+          <View style={styles.container}>
+            <CustomInput
+              label="Full Name"
+              placeholder="Enter your full name"
+              value={form.fullName}
+              onChangeText={(t) => setForm((p) => ({ ...p, fullName: t }))}
+            />
+
+            <CustomInput
+              label="Phone Number"
+              placeholder="3001234567"
+              value={form.phone}
+              onChangeText={(t) => setForm((p) => ({ ...p, phone: t }))}
+              keyboardType="phone-pad"
+              countryCode={countryCode}
+              onCountryPress={() => setShowPicker(true)}
+            />
+
+            <CustomInput
+              label="State"
+              placeholder="Enter state"
+              value={form.state}
+              onChangeText={(t) => setForm((p) => ({ ...p, state: t }))}
+            />
+
+            <CustomInput
+              label="City"
+              placeholder="Enter city"
+              value={form.city}
+              onChangeText={(t) => setForm((p) => ({ ...p, city: t }))}
+            />
+
+            <CustomInput
+              label="Street (Include house number)"
+              placeholder="Street name"
+              value={form.street}
+              onChangeText={(t) => setForm((p) => ({ ...p, street: t }))}
+            />
+
             <TouchableOpacity
-              onPress={() => router.back()}
-              style={styles.backBtn}
+              style={[styles.saveButton, loading && { opacity: 0.6 }]}
+              onPress={saveAddress}
+              disabled={loading}
             >
-              <ChevronLeft size={22} color="#000" />
+              <Text style={styles.saveText}>
+                {loading ? "Saving..." : "Save Address"}
+              </Text>
             </TouchableOpacity>
           </View>
-
-          {/* Column 2: Centered Title */}
-          <View style={styles.headerCenter}>
-            <Text style={styles.title}>
-              {addressId ? "Edit address" : "Add new address"}
-            </Text>
-          </View>
-
-          {/* Column 3: Empty Placeholder (Important for Balance) */}
-          <View style={styles.headerRight} />
+          <CountryPicker
+            show={showPicker}
+            onBackdropPress={() => setShowPicker(false)}
+            pickerButtonOnPress={(item) => {
+              setCountryCode(item.dial_code);
+              setShowPicker(false);
+            }}
+            style={{
+              modal: { height: 500 },
+            }}
+          />
         </View>
-        <View style={styles.container}>
-          <CustomInput
-            label="Full Name"
-            placeholder="Enter your full name"
-            value={form.fullName}
-            onChangeText={(t) => setForm((p) => ({ ...p, fullName: t }))}
-          />
-
-          <CustomInput
-            label="Phone Number"
-            placeholder="3001234567"
-            value={form.phone}
-            onChangeText={(t) => setForm((p) => ({ ...p, phone: t }))}
-            keyboardType="phone-pad"
-            countryCode={countryCode}
-            onCountryPress={() => setShowPicker(true)}
-          />
-
-          <CustomInput
-            label="State"
-            placeholder="Enter state"
-            value={form.state}
-            onChangeText={(t) => setForm((p) => ({ ...p, state: t }))}
-          />
-
-          <CustomInput
-            label="City"
-            placeholder="Enter city"
-            value={form.city}
-            onChangeText={(t) => setForm((p) => ({ ...p, city: t }))}
-          />
-
-          <CustomInput
-            label="Street (Include house number)"
-            placeholder="Street name"
-            value={form.street}
-            onChangeText={(t) => setForm((p) => ({ ...p, street: t }))}
-          />
-
-          <TouchableOpacity
-            style={[styles.saveButton, loading && { opacity: 0.6 }]}
-            onPress={saveAddress}
-            disabled={loading}
-          >
-            <Text style={styles.saveText}>
-              {loading ? "Saving..." : "Save Address"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <CountryPicker
-          show={showPicker}
-          onBackdropPress={() => setShowPicker(false)}
-          pickerButtonOnPress={(item) => {
-            setCountryCode(item.dial_code);
-            setShowPicker(false);
-          }}
-          style={{
-            modal: { height: 500 },
-          }}
-        />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -214,9 +217,8 @@ const AddAddressScreen = () => {
 export default AddAddressScreen;
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    paddingBottom: 40,
-  },
+  scrollContainer: {},
+  mainWrapper: {},
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -247,7 +249,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   container: {
-    backgroundColor: "#fff",
+    // backgroundColor: "#5a2121",
   },
   title: {
     fontFamily: "Adamina-Regular",
@@ -258,6 +260,7 @@ const styles = StyleSheet.create({
   saveButton: {
     marginHorizontal: 25,
     marginTop: 30,
+    marginBottom: 30,
     backgroundColor: "#ff6f4f",
     paddingVertical: 16,
     borderRadius: 14,

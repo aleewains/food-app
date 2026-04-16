@@ -19,7 +19,7 @@ const AnimatedIcon = ({ isActive, children }) => {
   const scale = useSharedValue(isActive ? 1.2 : 1);
 
   useEffect(() => {
-    scale.value = withSpring(isActive ? 1.2 : 1, {
+    scale.value = withSpring(isActive ? 1.15 : 1, {
       damping: 10,
       stiffness: 150,
     });
@@ -85,11 +85,11 @@ const styles = StyleSheet.create({
   },
   container: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "space-around", // better than space-between
+    alignItems: "center",
     backgroundColor: "#fff",
-    paddingHorizontal: 25,
-    paddingVertical: 14,
-    height: 74,
+    paddingVertical: 12,
+    height: 70,
   },
   item: {
     width: 50,
@@ -97,14 +97,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   iconWrapper: {
+    // backgroundColor: "#b21616",
     width: 42,
-    height: 100,
+    height: 42,
     alignItems: "center",
     justifyContent: "center",
   },
   icon: {
-    width: 25,
-    height: 28,
+    // backgroundColor: "#b21616",
+    width: 26,
+    height: 26,
+    resizeMode: "contain",
   },
   badge: {
     position: "absolute",

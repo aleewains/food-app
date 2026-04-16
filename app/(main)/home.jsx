@@ -34,6 +34,7 @@ import { DeviceEventEmitter } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchRestaurants } from "../../redux/restaurantSlice";
 import { toggleFavorite, fetchFavorites } from "../../redux/favoriteSlice";
+import { useTheme } from "../../theme";
 
 const categories = [
   { title: "Burger", image: require("../../assets/slider/burger.png") },
@@ -43,6 +44,9 @@ const categories = [
 ];
 
 export default function HomeScreen() {
+  const { colors, spacing, radius, typography } = useTheme();
+  const styles = getStyles(colors, spacing, radius, typography);
+
   const dispatch = useDispatch();
   const scrollRef = useRef(null);
 
@@ -105,13 +109,13 @@ export default function HomeScreen() {
   }, []);
 
   const RestaurantSkeleton = () => {
-    const opacity = useSharedValue(0.3);
+    const opacity = useSharedValue(0.4);
 
     useEffect(() => {
       opacity.value = withRepeat(
         withSequence(
-          withTiming(0.7, { duration: 800 }),
-          withTiming(0.3, { duration: 800 }),
+          withTiming(1, { duration: 700 }),
+          withTiming(0.4, { duration: 700 }),
         ),
         -1,
         true,
@@ -126,15 +130,18 @@ export default function HomeScreen() {
       <Animated.View
         style={[
           styles.skeletonCard,
-          { height: 229, marginBottom: 20 },
+          { height: 229, marginBottom: spacing.xl },
           animatedStyle,
         ]}
       >
         <View style={styles.skeletonImage} />
-        <View style={{ padding: 15 }}>
+        <View style={{ padding: spacing.lg }}>
           <View style={styles.skeletonLine} />
           <View
-            style={[styles.skeletonLine, { width: "60%", marginTop: 10 }]}
+            style={[
+              styles.skeletonLine,
+              { width: "60%", marginTop: spacing.md },
+            ]}
           />
         </View>
       </Animated.View>
@@ -178,7 +185,7 @@ export default function HomeScreen() {
             <Text style={styles.ViewAllText}>View All</Text>
             <Image
               source={require("../../assets/arrowright.png")}
-              style={{ height: 7.75, width: 5, marginTop: 2, marginLeft: 4 }}
+              style={{ height: 8, width: 5, marginLeft: spacing.xs }}
             />
           </TouchableOpacity>
         </View>
@@ -223,70 +230,87 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: { flex: 1, backgroundColor: "#FCFCFD" },
-  container: {
-    padding: 25,
-    backgroundColor: "#FCFCFD",
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: "400",
-    fontFamily: "Adamina-Regular",
-  },
-  foodSlider: {
-    marginHorizontal: -25,
-  },
-  featured: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  featuredResturant: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 18,
-    fontWeight: "400",
-    color: "#323643",
-  },
-  ViewAll: {
-    flexDirection: "row",
-  },
-  ViewAllText: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 13,
-    fontWeight: "400",
-    color: "#F56844",
-  },
-  skeletonCard: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    overflow: "hidden",
-  },
-  skeletonImage: {
-    height: 136,
-    backgroundColor: "#f2f8fcee",
-  },
-  skeletonLine: {
-    height: 20,
-    width: "90%",
-    backgroundColor: "#f2f8fcee",
-    borderRadius: 4,
-  },
-  emptyState: {
-    flex: 1,
-    alignItems: "center",
-    marginTop: 60,
-  },
-  emptyStateText: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 18,
-    fontWeight: "400",
-    color: "#323643",
-    marginBottom: 8,
-  },
-  emptyStateSubText: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 14,
-    color: "#9A9A9A",
-  },
-});
+const getStyles = (colors, spacing, radius, typography) =>
+  StyleSheet.create({
+    wrapper: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+
+    container: {
+      padding: spacing.xl,
+    },
+
+    title: {
+      fontSize: typography.size.xxl,
+      fontFamily: typography.font.regular,
+      color: colors.textPrimary,
+      marginBottom: spacing.md,
+    },
+
+    foodSlider: {
+      marginHorizontal: -spacing.xl,
+    },
+
+    featured: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginTop: spacing.lg,
+      marginBottom: spacing.sm,
+    },
+
+    featuredResturant: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.lg,
+      color: colors.textPrimary,
+    },
+
+    ViewAll: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    ViewAllText: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.sm,
+      color: colors.primary,
+    },
+
+    skeletonCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      overflow: "hidden",
+    },
+
+    skeletonImage: {
+      height: 136,
+      backgroundColor: colors.skeletonBase,
+    },
+
+    skeletonLine: {
+      height: 20,
+      width: "90%",
+      backgroundColor: colors.skeletonBase,
+      borderRadius: radius.sm,
+    },
+
+    emptyState: {
+      flex: 1,
+      alignItems: "center",
+      marginTop: spacing.xxxl,
+    },
+
+    emptyStateText: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.lg,
+      color: colors.textPrimary,
+      marginBottom: spacing.xs,
+    },
+
+    emptyStateSubText: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.sm,
+      color: colors.textSecondary,
+    },
+  });

@@ -1,10 +1,7 @@
 import React from "react";
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { Star, Heart, Bike, Clock, CheckCircle } from "lucide-react-native";
-
-const CARD_WIDTH = "100%";
-const CARD_HEIGHT = 229;
-const IMAGE_HEIGHT = 136;
+import { useTheme } from "../theme";
 
 const RestaurantCard = ({
   name,
@@ -19,218 +16,77 @@ const RestaurantCard = ({
   onPressFavorite,
   onPressCard,
 }) => {
+  const { colors, spacing, radius, typography } = useTheme();
+  const styles = getStyles(colors, spacing, radius, typography);
+
   return (
     <TouchableOpacity
       activeOpacity={0.9}
       onPress={onPressCard}
-      style={{
-        width: CARD_WIDTH,
-        height: CARD_HEIGHT,
-        backgroundColor: "white",
-        borderRadius: 20,
-        marginTop: 5,
-        marginBottom: 20,
-        overflow: "hidden",
-        alignSelf: "center",
-        elevation: 8,
-        shadowColor: "#D3D1D840",
-        shadowOpacity: 0.25,
-        shadowRadius: 20,
-        shadowOffset: { width: 0, height: 4 },
-      }}
+      style={styles.card}
     >
-      {/* IMAGE SECTION */}
-      <View style={{ width: CARD_WIDTH, height: IMAGE_HEIGHT }}>
-        <Image
-          source={imageUrl}
-          style={{
-            width: "100%",
-            height: "100%",
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-          }}
-        />
+      {/* ── IMAGE SECTION ─────────────────────────────── */}
+      <View style={styles.imageContainer}>
+        <Image source={imageUrl} style={styles.image} />
 
         {/* Rating badge */}
-        <View
-          style={{
-            position: "absolute",
-            top: 12,
-            left: 12,
-            backgroundColor: "white",
-            paddingVertical: 6,
-            paddingHorizontal: 12,
-            borderRadius: 20,
-            flexDirection: "row",
-            alignItems: "center",
-            elevation: 5,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 15,
-              marginRight: 6,
-              fontFamily: "Adamina-Regular",
-              fontWeight: "400",
-              lineHeight: "100%",
-            }}
-          >
-            {rating}
-          </Text>
-
-          <Star size={13} color="#FFC529" fill="#FFC529" />
-
-          <Text
-            style={{
-              fontSize: 12,
-              marginLeft: 6,
-              color: "#9796A1",
-              fontWeight: "400",
-              fontFamily: "Adamina-Regular",
-            }}
-          >
-            ({reviewCount}+)
-          </Text>
+        <View style={styles.ratingBadge}>
+          <Text style={styles.ratingText}>{rating}</Text>
+          <Star size={13} color={colors.star} fill={colors.star} />
+          <Text style={styles.reviewCount}>({reviewCount}+)</Text>
         </View>
 
-        {/* Heart Button */}
+        {/* Heart / Favourite button */}
         <TouchableOpacity
           onPress={onPressFavorite}
-          style={{
-            position: "absolute",
-            top: 12,
-            right: 12,
-            backgroundColor: "#fff",
-            padding: 10,
-            borderRadius: 100,
-            elevation: 5,
-          }}
+          style={styles.heartButton}
           activeOpacity={0.9}
         >
           <Heart
             size={20}
-            color={isFavorite ? "#FE724C" : "#FE724C"}
-            fill={isFavorite ? "#FE724C" : "transparent"}
+            color={colors.primary}
+            fill={isFavorite ? colors.primary : colors.transparent}
           />
         </TouchableOpacity>
       </View>
 
-      {/* CONTENT */}
-      <View
-        style={{
-          paddingHorizontal: 20,
-          paddingTop: 5,
-          width: 246.62,
-          height: 67,
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: "700",
-              color: "#000000",
-              fontWeight: "400",
-              fontFamily: "Adamina-Regular",
-            }}
-          >
-            {name}
-          </Text>
-
+      {/* ── CONTENT ───────────────────────────────────── */}
+      <View style={styles.content}>
+        {/* Name row */}
+        <View style={styles.nameRow}>
+          <Text style={styles.name}>{name}</Text>
           {isVerified && (
             <CheckCircle
               size={18}
-              color="white"
-              fill="#10b981"
-              style={{ marginLeft: 6 }}
+              color={colors.surface}
+              fill={colors.success}
+              style={styles.verifiedIcon}
             />
           )}
         </View>
 
         {/* Delivery info */}
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            marginTop: 0,
-          }}
-        >
-          {/* Free delivery */}
+        <View style={styles.deliveryRow}>
           {deliveryFee !== undefined && deliveryFee !== null && (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginRight: 6,
-              }}
-            >
-              <Bike size={18} color="#ff7043" />
-              <Text
-                style={{
-                  marginLeft: 6,
-                  fontSize: 12,
-                  color: "#7E8392",
-                  fontWeight: "400",
-                  fontWeight: "400",
-                  fontFamily: "Adamina-Regular",
-                }}
-              >
-                {deliveryFee === 0 ? (
-                  <Text>Free Delivery</Text>
-                ) : (
-                  <Text>{deliveryFee}</Text>
-                )}
+            <View style={styles.deliveryItem}>
+              <Bike size={18} color={colors.accentDelivery} />
+              <Text style={styles.deliveryText}>
+                {deliveryFee === 0 ? "Free Delivery" : String(deliveryFee)}
               </Text>
             </View>
           )}
 
-          {/* Delivery time */}
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Clock size={18} color="#ff7043" />
-            <Text
-              style={{
-                marginLeft: 6,
-                fontSize: 12,
-                color: "#7E8392",
-                fontWeight: "500",
-                fontWeight: "400",
-                fontFamily: "Adamina-Regular",
-              }}
-            >
-              {deliveryTime}
-            </Text>
+          <View style={styles.deliveryItem}>
+            <Clock size={18} color={colors.accentDelivery} />
+            <Text style={styles.deliveryText}>{deliveryTime}</Text>
           </View>
         </View>
 
-        {/* TAGS */}
-        <View
-          style={{
-            flexDirection: "row",
-            marginTop: 10,
-            gap: 10,
-          }}
-        >
+        {/* Tags */}
+        <View style={styles.tagsRow}>
           {tags.map((tag, i) => (
-            <View
-              key={i}
-              style={{
-                backgroundColor: "#F6F6F6",
-                paddingVertical: 6,
-                paddingHorizontal: 14,
-                borderRadius: 5,
-              }}
-            >
-              <Text
-                style={{
-                  color: "#8A8E9B",
-                  fontWeight: "600",
-                  fontWeight: "400",
-                  fontFamily: "Adamina-Regular",
-                  fontSize: 12,
-                }}
-              >
-                {tag}
-              </Text>
+            <View key={i} style={styles.tag}>
+              <Text style={styles.tagText}>{tag}</Text>
             </View>
           ))}
         </View>
@@ -240,3 +96,140 @@ const RestaurantCard = ({
 };
 
 export default RestaurantCard;
+
+// ─────────────────────────────────────────────────────────────────────────────
+const getStyles = (colors, spacing, radius, typography) =>
+  StyleSheet.create({
+    card: {
+      width: "100%",
+      // height: 229,
+      backgroundColor: colors.surface,
+      borderRadius: radius.xl,
+      marginTop: spacing.xs + 1,
+      marginBottom: spacing.xl,
+      overflow: "hidden",
+      alignSelf: "center",
+      //  shadowColor is a solid hex — opacity controlled via shadowOpacity
+      shadowColor: colors.shadowSoft,
+      shadowOpacity: 0.25,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 8,
+      paddingBottom: spacing.lg,
+    },
+
+    imageContainer: {
+      width: "100%",
+      height: 136,
+    },
+
+    image: {
+      width: "100%",
+      height: "100%",
+      borderTopLeftRadius: radius.xl,
+      borderTopRightRadius: radius.xl,
+    },
+
+    // ── Rating badge ───────────────────────────────────
+    ratingBadge: {
+      position: "absolute",
+      top: 12,
+      left: 12,
+      backgroundColor: colors.surface,
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      borderRadius: radius.full,
+      flexDirection: "row",
+      alignItems: "center",
+      elevation: 5,
+    },
+
+    ratingText: {
+      color: colors.textSubtle,
+      fontSize: 15,
+      marginRight: spacing.sm - 2,
+      fontFamily: typography.font.regular,
+      lineHeight: 20, // was "100%" — string crashes on Android
+    },
+
+    reviewCount: {
+      fontSize: typography.size.sm,
+      marginLeft: spacing.sm - 2,
+      color: colors.textSubtle,
+      fontFamily: typography.font.regular,
+    },
+
+    // ── Heart button ───────────────────────────────────
+    heartButton: {
+      position: "absolute",
+      top: 12,
+      right: 12,
+      backgroundColor: colors.surface,
+      padding: spacing.md,
+      borderRadius: radius.circle,
+      elevation: 5,
+    },
+
+    // ── Content area ───────────────────────────────────
+    content: {
+      paddingHorizontal: spacing.xl,
+      paddingTop: spacing.xs + 1,
+    },
+
+    nameRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    name: {
+      fontSize: typography.size.h3,
+      fontWeight: "400", // was declared twice (700 then 400) — kept intended value
+      fontFamily: typography.font.regular,
+      color: colors.textPrimary,
+    },
+
+    verifiedIcon: {
+      marginLeft: spacing.sm - 2,
+    },
+
+    // ── Delivery info ──────────────────────────────────
+    deliveryRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 0,
+    },
+
+    deliveryItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginRight: spacing.sm - 2,
+    },
+
+    deliveryText: {
+      marginLeft: spacing.sm - 2,
+      fontSize: typography.size.sm,
+      fontFamily: typography.font.regular,
+      color: colors.textSubtle,
+    },
+
+    // ── Tags ───────────────────────────────────────────
+    tagsRow: {
+      flexDirection: "row",
+      marginTop: spacing.md,
+      gap: spacing.md,
+    },
+
+    tag: {
+      backgroundColor: colors.surfaceAlt,
+      paddingVertical: 6,
+      paddingHorizontal: 14,
+      borderRadius: radius.xs,
+    },
+
+    tagText: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.sm,
+      fontWeight: "400",
+      color: colors.textSubtle,
+    },
+  });

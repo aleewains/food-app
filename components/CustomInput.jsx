@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useTheme } from "../theme";
 
 const CustomInput = ({
   label,
@@ -20,18 +21,25 @@ const CustomInput = ({
   keyboardType = "default", // Useful for phone numbers
   error,
 }) => {
+  const { colors, spacing, radius, typography } = useTheme();
+  const styles = getStyles(colors, spacing, radius, typography);
+
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <View style={{ marginHorizontal: 25, marginBottom: 20 }}>
+    <View style={styles.wrapper}>
       {label && <Text style={styles.label}>{label}</Text>}
 
       <View
         style={[
           styles.inputContainer,
-          { borderColor: isFocused ? "#ff6f4f" : "#e6e6e6" },
-          !editable && { backgroundColor: "#F9F9FB" }, // Gray out when locked
+          {
+            borderColor: isFocused
+              ? colors.inputBorderFocus
+              : colors.inputBorder,
+          },
+          !editable && { backgroundColor: colors.surfaceMuted }, // Gray out when locked
         ]}
       >
         {/* Country Code Trigger - Now INSIDE the container */}
@@ -42,18 +50,18 @@ const CustomInput = ({
             style={styles.countrySelector}
           >
             <Text style={styles.countryText}>{countryCode}</Text>
-            <Ionicons name="chevron-down" size={14} color="#A0A0AA" />
+            <Ionicons name="chevron-down" size={14} color={colors.textSubtle} />
             <View style={styles.divider} />
           </TouchableOpacity>
         )}
 
         <TextInput
           placeholder={placeholder}
-          placeholderTextColor="#C4C4C4"
+          placeholderTextColor={colors.textPlaceholder}
           value={value}
           onChangeText={onChangeText}
           secureTextEntry={secureTextEntry && !showPassword}
-          style={[styles.input, !editable && { color: "#9796A1" }]}
+          style={[styles.input, !editable && { color: colors.textDisabled }]}
           editable={editable}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
@@ -66,7 +74,7 @@ const CustomInput = ({
             <Ionicons
               name={showPassword ? "eye-off" : "eye"}
               size={24}
-              color="#D0D2D1"
+              color={colors.textLight}
               style={{ marginLeft: 8 }}
             />
           </TouchableOpacity>
@@ -78,48 +86,62 @@ const CustomInput = ({
 
 export default CustomInput;
 
-const styles = StyleSheet.create({
-  label: {
-    fontSize: 18,
-    color: "#A0A0AA",
-    marginBottom: 6,
-    fontFamily: "Adamina-Regular",
-  },
-  inputContainer: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    backgroundColor: "#fff",
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  input: {
-    flex: 1,
-    fontSize: 18,
-    fontFamily: "Adamina-Regular",
-    color: "#000",
-  },
-  countrySelector: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingRight: 10,
-  },
-  countryText: {
-    fontSize: 16,
-    color: "#000",
-    marginRight: 4,
-    fontFamily: "Adamina-Regular",
-  },
-  divider: {
-    width: 1,
-    height: 24,
-    backgroundColor: "#E6E6E6",
-    marginHorizontal: 10,
-  },
-  errorText: {
-    color: "red",
-    fontSize: 14,
-    fontFamily: "Adamina-Regular",
-  },
-});
+const getStyles = (colors, spacing, radius, typography) =>
+  StyleSheet.create({
+    wrapper: {
+      marginHorizontal: spacing.xl,
+      marginBottom: spacing.xl,
+    },
+
+    label: {
+      fontSize: typography.size.lg,
+      color: colors.textMuted,
+      marginBottom: spacing.xs,
+      fontFamily: typography.font.regular,
+    },
+
+    inputContainer: {
+      borderWidth: 1,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      backgroundColor: colors.surface,
+      flexDirection: "row",
+      alignItems: "center",
+      borderColor: colors.inputBorder,
+    },
+
+    input: {
+      flex: 1,
+      fontSize: typography.size.lg,
+      fontFamily: typography.font.regular,
+      color: colors.textPrimary,
+    },
+
+    countrySelector: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingRight: spacing.sm,
+    },
+
+    countryText: {
+      fontSize: typography.size.md,
+      color: colors.textPrimary,
+      marginRight: 4,
+      fontFamily: typography.font.regular,
+    },
+
+    divider: {
+      width: 1,
+      height: 24,
+      backgroundColor: colors.divider,
+      marginHorizontal: spacing.sm,
+    },
+
+    errorText: {
+      color: colors.textError,
+      fontSize: typography.size.sm,
+      fontFamily: typography.font.regular,
+      marginTop: spacing.xs,
+    },
+  });

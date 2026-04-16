@@ -19,24 +19,25 @@ import { auth } from "../../utils/firebase";
 import { router, useRouter } from "expo-router";
 import { useFonts } from "expo-font";
 import CustomInput from "../../components/CustomInput";
-import { useToast } from "../../context/ToastContext";
+import { useUI } from "../../context/UIContext";
+import { useTheme } from "../../theme";
 
 const Login = () => {
+  const { colors, spacing, radius, typography, shadows } = useTheme();
+  const styles = getStyles(colors, spacing, radius, typography, shadows);
+
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
 
-  const { showToast } = useToast();
+  const { showToast, showError } = useUI();
 
   // const router = useRouter();
 
   const isValidEmail = (email) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
-
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalMessage, setModalMessage] = useState("");
 
   const getFirebaseError = (error) => {
     switch (error.code) {
@@ -53,9 +54,9 @@ const Login = () => {
 
   const handleCreate = async () => {
     let newErrors = {};
+
     if (!fullName || !email || !password) {
-      setModalMessage("Please fill all fields");
-      setModalVisible(true);
+      showError("Please fill all fields");
       return;
     }
 
@@ -87,8 +88,7 @@ const Login = () => {
       showToast("Account Created!", "success");
     } catch (error) {
       console.log("Signup error:", error);
-      setModalMessage(getFirebaseError(error));
-      setModalVisible(true);
+      showError(getFirebaseError(error));
     }
   };
 
@@ -151,125 +151,70 @@ const Login = () => {
       >
         Already have an account? <Text style={styles.loginText}>Login</Text>
       </Text>
-      <Modal
-        transparent
-        visible={modalVisible}
-        animationType="fade"
-        statusBarTranslucent={true}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
-            <Text style={styles.modalText}>{modalMessage}</Text>
-
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={styles.modalButtonText}>OK</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };
 
 export default Login;
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#FFFFFF",
-    width: "100%",
-    height: "100%",
-  },
-  ellipseC: {
-    flexDirection: "row",
-  },
-  topRight: {
-    // top: -1,
-    left: -49,
-  },
-  topRight2: {
-    left: 107,
-  },
-  title: {
-    top: 10,
-    left: 26,
-    fontSize: 36.41,
-    fontWeight: "400",
-    fontFamily: "Adamina-Regular",
-    marginBottom: 20,
-    color: "#000000",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#a01717ff",
-    borderRadius: 5,
-    marginBottom: 10,
-    padding: 10,
-    marginLeft: 5,
-    marginRight: 5,
-  },
-  button: {
-    width: 248,
-    height: 60,
-    backgroundColor: "#ff6f4f",
-    borderRadius: 40,
-    alignSelf: "center",
-    alignItems: "center",
-    // marginHorizontal: 25,
-    paddingVertical: 18,
-    marginTop: 10,
-    shadowColor: "#ff6f4f",
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-  },
-  buttonT: {
-    color: "#fff",
-    fontFamily: "Adamina-Regular",
-    fontSize: 20,
-    letterSpacing: 1,
-  },
-  createAcc: {
-    textAlign: "center",
-    fontFamily: "Adamina-Regular",
-    fontSize: 16,
-    color: "#555",
-    marginVertical: 25,
-  },
-  loginText: {
-    color: "#ff6f4f",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.24)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
+const getStyles = (colors, spacing, radius, typography, shadows, cta) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: colors.background,
+      width: "100%",
+      height: "100%",
+    },
 
-  modalBox: {
-    width: "80%",
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 20,
-    alignItems: "center",
-  },
+    ellipseC: {
+      flexDirection: "row",
+    },
 
-  modalText: {
-    fontSize: 16,
-    marginBottom: 15,
-    textAlign: "center",
-  },
+    topRight: {
+      left: -49,
+    },
 
-  modalButton: {
-    backgroundColor: "#ff6f4f",
-    paddingVertical: 10,
-    paddingHorizontal: 30,
-    borderRadius: 20,
-  },
+    topRight2: {
+      left: 107,
+    },
 
-  modalButtonText: {
-    color: "#fff",
-    fontSize: 16,
-  },
-});
+    title: {
+      marginTop: spacing.xxxl,
+      marginLeft: spacing.xl,
+      fontSize: typography.size.h1,
+      fontFamily: typography.font.regular,
+      marginBottom: spacing.xl,
+      color: colors.textPrimary,
+    },
+
+    button: {
+      width: 248,
+      height: 60,
+      backgroundColor: colors.primary,
+      borderRadius: radius.pill,
+      alignSelf: "center",
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: spacing.md,
+      shadowColor: colors.primaryShadow,
+      ...shadows.cta,
+    },
+
+    buttonT: {
+      color: colors.textInverse,
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.xl,
+      letterSpacing: 1,
+    },
+
+    createAcc: {
+      textAlign: "center",
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.lg,
+      color: colors.textSecondary,
+      marginVertical: spacing.xl,
+    },
+
+    loginText: {
+      color: colors.primary,
+    },
+  });

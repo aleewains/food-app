@@ -18,6 +18,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as NavigationBar from "expo-navigation-bar";
 import { ToastProvider } from "../context/ToastContext";
+import { UIProvider } from "../context/UIContext";
 
 // Prevent the splash screen from hiding automatically
 SplashScreen.preventAutoHideAsync();
@@ -122,7 +123,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Provider store={store}>
-        <ToastProvider>
+        <UIProvider>
           <SafeAreaProvider>
             {/* StatusBar hidden for immersive experience */}
             <StatusBar hidden={true} />
@@ -142,7 +143,7 @@ export default function RootLayout() {
               <Stack.Screen name="welcome" options={{ animation: "none" }} />
             </Stack>
           </SafeAreaProvider>
-        </ToastProvider>
+        </UIProvider>
       </Provider>
     </GestureHandlerRootView>
   );
