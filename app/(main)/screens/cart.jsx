@@ -6,12 +6,10 @@ import {
   TouchableOpacity,
   FlatList,
   TextInput,
-  Platform,
   Alert,
   DeviceEventEmitter,
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-
 import { useSelector, useDispatch } from "react-redux";
 import {
   increaseQuantity,
@@ -20,31 +18,39 @@ import {
   clearCart,
 } from "../../../redux/cartSlice";
 import { useRouter } from "expo-router";
-import { Minus, Plus, X, ChevronLeft, Heart } from "lucide-react-native";
+import { Minus, Plus, X, ChevronLeft } from "lucide-react-native";
 import { createOrder, clearOrder } from "../../../redux/orderSlice";
+import {
+  useTheme,
+  spacing,
+  radius,
+  typography,
+  shadows,
+  layout,
+  iconSize,
+} from "../../../theme";
 
 export default function CartScreen() {
   const dispatch = useDispatch();
   const router = useRouter();
+  const { colors } = useTheme();
 
   const cartItems = useSelector((state) => state.cart.items);
-
   const { loading, error, currentOrder } = useSelector((state) => state.order);
 
-  const subtotal = useMemo(() => {
-    return cartItems.reduce((sum, item) => sum + item.total, 0);
-  }, [cartItems]);
+  const subtotal = useMemo(
+    () => cartItems.reduce((sum, item) => sum + item.total, 0),
+    [cartItems],
+  );
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-
-  const tax = 5.3; // Matches your UI screenshot specifically
+  const tax = 5.3;
   const delivery = 1.0;
   const total = subtotal + tax + delivery;
 
   const handleCheckout = () => {
     if (cartItems.length === 0) return;
 
-    // Sanitize items to ensure no 'undefined' fields hit Firebase
     const sanitizedItems = cartItems.map((item) => ({
       id: item.itemId || "",
       cartItemId: item.cartItemId,
@@ -76,22 +82,24 @@ export default function CartScreen() {
       dispatch(clearOrder());
     }
   }, [currentOrder, dispatch, router]);
+
   useEffect(() => {
     if (error) {
       Alert.alert("Order Failed", error);
     }
   }, [error]);
 
+  const handleBack = () => {
+    DeviceEventEmitter.emit("CHANGE_TAB", { tab: "home" });
+  };
+
+  const styles = makeStyles(colors);
+
   const renderItem = ({ item }) => (
     <View style={styles.itemContainer}>
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "space-between",
-        }}
-      >
-        <View style={styles.content}>
-          <Text style={styles.title}>{item.name}</Text>
+      <View style={{ flex: 1, justifyContent: "space-between" }}>
+        <View>
+          <Text style={styles.itemTitle}>{item.name}</Text>
           {item.addons?.length > 0 && (
             <Text style={styles.subText}>
               {item.addons.map((a) => a.name).join(", ")}
@@ -106,7 +114,7 @@ export default function CartScreen() {
           onPress={() => dispatch(removeFromCart(item.cartItemId))}
           style={styles.removeBtn}
         >
-          <X size={18} color="#FF4B3A" />
+          <X size={iconSize.md} color={colors.danger} />
         </TouchableOpacity>
 
         <View style={styles.verticalCounter}>
@@ -114,7 +122,7 @@ export default function CartScreen() {
             style={styles.counterBtn}
             onPress={() => dispatch(decreaseQuantity(item.cartItemId))}
           >
-            <Minus size={14} color="#FE724C" />
+            <Minus size={14} color={colors.primary} />
           </TouchableOpacity>
 
           <Text style={styles.qtyText}>{item.quantity}</Text>
@@ -123,39 +131,28 @@ export default function CartScreen() {
             style={[styles.counterBtn, styles.counterBtnActive]}
             onPress={() => dispatch(increaseQuantity(item.cartItemId))}
           >
-            <Plus size={14} color="#fff" />
+            <Plus size={14} color={colors.textInverse} />
           </TouchableOpacity>
         </View>
       </View>
     </View>
   );
 
-  const handleBack = () => {
-    // router.back();
-    // Instead of router.back(), we tell the PagerView to move to index 0 (Home)
-    DeviceEventEmitter.emit("CHANGE_TAB", { tab: "home" });
-  };
-
   return (
     <SafeAreaProvider style={styles.container}>
-      {/* Custom Header */}
-
+      {/* Header */}
       <View style={styles.header}>
-        {/* Column 1: Back Button */}
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={handleBack} style={styles.backBtn}>
-            <ChevronLeft size={22} color="#000" />
+            <ChevronLeft size={iconSize.xl} color={colors.textPrimary} />
           </TouchableOpacity>
         </View>
-
-        {/* Column 2: Centered Title */}
         <View style={styles.headerCenter}>
-          <Text style={styles.title}>Cart</Text>
+          <Text style={styles.headerTitle}>Cart</Text>
         </View>
-
-        {/* Column 3: Empty Placeholder (Important for Balance) */}
         <View style={styles.headerRight} />
       </View>
+
       <View style={{ flex: 1 }}>
         <FlatList
           style={{ flex: 1 }}
@@ -163,16 +160,15 @@ export default function CartScreen() {
           keyExtractor={(item) => item.cartItemId}
           renderItem={renderItem}
           contentContainerStyle={{
-            paddingHorizontal: 25,
-            paddingBottom: 20,
+            paddingHorizontal: spacing.xxl,
+            paddingBottom: spacing.xl,
           }}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyTitle}>Your cart is empty</Text>
               <Text style={styles.emptySub}>
-                Looks like you haven’t added anything yet.
+                Looks like you haven't added anything yet.
               </Text>
-
               <TouchableOpacity
                 style={styles.emptyBtn}
                 onPress={() =>
@@ -185,17 +181,18 @@ export default function CartScreen() {
             </View>
           }
         />
+
         <View
           style={{
-            paddingHorizontal: 25,
-            paddingBottom: 20,
+            paddingHorizontal: spacing.xxl,
+            paddingBottom: spacing.xl,
           }}
         >
-          {/* Promo Code Section */}
+          {/* Promo Code */}
           <View style={styles.promoContainer}>
             <TextInput
               placeholder="Promo Code"
-              placeholderTextColor="#C4C4C4"
+              placeholderTextColor={colors.textPlaceholder}
               style={styles.promoInput}
             />
             <TouchableOpacity style={styles.applyBtn} activeOpacity={0.8}>
@@ -205,9 +202,9 @@ export default function CartScreen() {
 
           {/* Summary */}
           <View style={styles.summarySection}>
-            <Row label="Subtotal" value={subtotal} />
-            <Row label="Tax and Fees" value={tax} />
-            <Row label="Delivery" value={delivery} />
+            <Row label="Subtotal" value={subtotal} colors={colors} />
+            <Row label="Tax and Fees" value={tax} colors={colors} />
+            <Row label="Delivery" value={delivery} colors={colors} />
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>
                 Total <Text style={styles.itemCount}>({cartCount} items)</Text>
@@ -232,270 +229,252 @@ export default function CartScreen() {
   );
 }
 
-const Row = ({ label, value }) => (
-  <View style={styles.row}>
-    <Text style={styles.rowLabel}>{label}</Text>
-    <View style={{ flexDirection: "row", alignItems: "baseline" }}>
+const Row = ({ label, value, colors }) => {
+  const styles = makeStyles(colors);
+  return (
+    <View style={styles.row}>
+      <Text style={styles.rowLabel}>{label}</Text>
       <Text style={styles.rowValue}>${value.toFixed(2)}</Text>
     </View>
-  </View>
-);
+  );
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    flexDirection: "column",
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between", // Pushes the three sections apart
-    marginTop: 25,
-    marginBottom: 30,
-    paddingHorizontal: 25,
-  },
-  headerLeft: {
-    width: 40,
-    alignItems: "flex-start",
-  },
-  headerCenter: {
-    flex: 1, // Takes up all remaining space
-    alignItems: "center",
-  },
-  headerRight: {
-    width: 40, // Must be EXACTLY the same as headerLeft width
-  },
-  backBtn: {
-    alignSelf: "flex-start",
-    width: 38,
-    height: 38,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 14,
-
-    justifyContent: "center",
-    alignItems: "center",
-
-    shadowColor: "rgba(211, 209, 216, 1)",
-    shadowOffset: {
-      width: 5,
-      height: 10,
+const makeStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      flexDirection: "column",
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
 
-    elevation: 10,
-  },
-  title: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#111719",
-  },
-  headerTitle: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 20,
-    fontWeight: "600",
-  },
+    // ── Header ──────────────────────────────────────────────────────────────
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginTop: spacing.xxl,
+      marginBottom: spacing.huge,
+      paddingHorizontal: spacing.xxl,
+    },
+    headerLeft: {
+      width: layout.headerIconSize,
+      alignItems: "flex-start",
+    },
+    headerCenter: {
+      flex: 1,
+      alignItems: "center",
+    },
+    headerRight: {
+      width: layout.headerIconSize,
+    },
+    backBtn: {
+      width: layout.headerIconSize,
+      height: layout.headerIconSize,
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: colors.shadowSoft,
+      ...shadows.soft,
+    },
+    headerTitle: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.xl,
+      fontWeight: "600",
+      color: colors.textPrimary,
+    },
 
-  itemContainer: {
-    flexDirection: "row",
-    // justifyContent: "space-between",
-    // alignItems: "center",
-    marginVertical: 10,
-    marginHorizontal: 2, // Gives space for the shadow to show on the sides
-    padding: 12, // Internal spacing
-    backgroundColor: "#fff", // REQUIRED for shadows to show on most devices
-    borderRadius: 15, // Rounded corners make shadows look better
+    // ── Cart Item ────────────────────────────────────────────────────────────
+    itemContainer: {
+      flexDirection: "row",
+      marginVertical: spacing.md,
+      marginHorizontal: 2,
+      padding: spacing.md + 2,
+      backgroundColor: colors.surface,
+      borderRadius: radius.xl,
+      shadowColor: colors.shadowSoft,
+      ...shadows.card,
+    },
+    itemTitle: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.xl,
+      fontWeight: "500",
+      color: colors.textPrimary,
+    },
+    subText: {
+      fontFamily: typography.font.regular,
+      color: colors.textSubtle,
+      fontSize: typography.size.md,
+      marginVertical: spacing.xs,
+    },
+    price: {
+      fontFamily: typography.font.regular,
+      color: colors.primary,
+      fontWeight: "400",
+      fontSize: typography.size.lg,
+    },
 
-    // iOS Shadows
-    shadowColor: "#dcdcdc",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    // ── Item Controls ────────────────────────────────────────────────────────
+    rightActions: {
+      justifyContent: "space-between",
+      alignItems: "flex-end",
+      minHeight: 60,
+    },
+    removeBtn: {
+      alignSelf: "flex-end",
+    },
+    verticalCounter: {
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
+      gap: spacing.md,
+    },
+    counterBtn: {
+      width: 28,
+      height: 28,
+      borderRadius: radius.full,
+      borderWidth: 1,
+      borderColor: colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    counterBtnActive: {
+      backgroundColor: colors.primary,
+    },
+    qtyText: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.lg,
+      fontWeight: "600",
+      marginVertical: 2,
+      color: colors.textPrimary,
+    },
 
-    // Android Shadow
-    elevation: 5,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 40,
-  },
+    // ── Empty State ──────────────────────────────────────────────────────────
+    emptyContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 40,
+    },
+    emptyTitle: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.xxl,
+      fontWeight: "600",
+      color: colors.textPrimary,
+      marginBottom: spacing.md,
+    },
+    emptySub: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.md,
+      color: colors.textDisabled,
+      textAlign: "center",
+      marginBottom: spacing.xxl,
+    },
+    emptyBtn: {
+      backgroundColor: colors.primary,
+      paddingVertical: spacing.md + 2,
+      paddingHorizontal: spacing.huge,
+      borderRadius: radius.pill,
+    },
+    emptyBtnText: {
+      fontFamily: typography.font.regular,
+      color: colors.textInverse,
+      fontWeight: "600",
+    },
 
-  emptyTitle: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#111719",
-    marginBottom: 10,
-  },
+    // ── Promo Code ───────────────────────────────────────────────────────────
+    promoContainer: {
+      flexDirection: "row",
+      borderWidth: 1,
+      borderColor: colors.dividerWeak,
+      borderRadius: radius.pill,
+      padding: spacing.sm,
+      marginVertical: spacing.xxl,
+      alignItems: "center",
+    },
+    promoInput: {
+      fontFamily: typography.font.regular,
+      flex: 1,
+      paddingLeft: spacing.xl,
+      fontSize: typography.size.lg,
+      color: colors.textPrimary,
+    },
+    applyBtn: {
+      backgroundColor: colors.primary,
+      paddingVertical: spacing.md + 2,
+      paddingHorizontal: spacing.xxl,
+      borderRadius: radius.pill,
+    },
+    applyText: {
+      fontFamily: typography.font.regular,
+      color: colors.textInverse,
+      fontWeight: "600",
+    },
 
-  emptySub: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 14,
-    color: "#9796A1",
-    textAlign: "center",
-    marginBottom: 25,
-  },
+    // ── Order Summary ────────────────────────────────────────────────────────
+    summarySection: {
+      borderTopWidth: 1,
+      borderColor: colors.divider,
+      paddingTop: spacing.xl,
+    },
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginVertical: spacing.sm,
+    },
+    rowLabel: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.xl - 1,
+      color: colors.textPrimary,
+    },
+    rowValue: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.xl,
+      fontWeight: "600",
+      color: colors.textPrimary,
+    },
+    totalRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: spacing.lg,
+      borderTopWidth: 1,
+      borderColor: colors.divider,
+      paddingTop: spacing.lg,
+    },
+    totalLabel: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.xl,
+      fontWeight: "500",
+      color: colors.textPrimary,
+    },
+    itemCount: {
+      color: colors.textSubtle,
+      fontWeight: "400",
+      fontSize: typography.size.md,
+    },
+    totalValue: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.xxl,
+      fontWeight: "600",
+      color: colors.textPrimary,
+    },
 
-  emptyBtn: {
-    backgroundColor: "#FE724C",
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 25,
-  },
-
-  emptyBtnText: {
-    fontFamily: "Adamina-Regular",
-    color: "#fff",
-    fontWeight: "600",
-  },
-  content: {
-    // justifyContent: "space-between",
-  },
-  title: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 18,
-    fontWeight: "500",
-    color: "#111719",
-  },
-  subText: {
-    fontFamily: "Adamina-Regular",
-    color: "#9796A1",
-    fontSize: 14,
-    marginVertical: 4,
-  },
-  price: {
-    fontFamily: "Adamina-Regular",
-    color: "#FE724C",
-    fontWeight: "400",
-    fontSize: 16,
-  },
-
-  rightActions: {
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-    minHeight: 60,
-  },
-  removeBtn: { alignSelf: "flex-end" },
-
-  verticalCounter: {
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
-    gap: 10,
-  },
-  counterBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#FE724C",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  counterBtnActive: { backgroundColor: "#FE724C" },
-  qtyText: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 16,
-    fontWeight: "600",
-    marginVertical: 2,
-  },
-
-  promoContainer: {
-    flexDirection: "row",
-    borderWidth: 1,
-    borderColor: "#EEEEEE",
-    borderRadius: 30,
-    padding: 8,
-    marginVertical: 25,
-    alignItems: "center",
-  },
-  promoInput: {
-    fontFamily: "Adamina-Regular",
-    flex: 1,
-    paddingLeft: 20,
-    fontSize: 16,
-  },
-  applyBtn: {
-    backgroundColor: "#FE724C",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 25,
-  },
-  applyText: {
-    fontFamily: "Adamina-Regular",
-    color: "#fff",
-    fontWeight: "600",
-  },
-
-  summarySection: { borderTopWidth: 1, borderColor: "#F2F2F2", paddingTop: 20 },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginVertical: 8,
-  },
-  rowLabel: { fontFamily: "Adamina-Regular", fontSize: 17, color: "#111719" },
-  rowValue: { fontFamily: "Adamina-Regular", fontSize: 18, fontWeight: "600" },
-  currencySmall: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 12,
-    color: "#9796A1",
-  },
-
-  totalRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 15,
-    borderTopWidth: 1,
-    borderColor: "#F2F2F2",
-    paddingTop: 15,
-  },
-  totalLabel: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 18,
-    fontWeight: "500",
-  },
-  itemCount: { color: "#9796A1", fontWeight: "400", fontSize: 14 },
-  totalValue: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 20,
-    fontWeight: "600",
-  },
-  currency: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 14,
-    color: "#9796A1",
-    fontWeight: "400",
-  },
-
-  checkoutBtn: {
-    marginHorizontal: 25,
-    marginBottom: 30,
-    height: 60,
-    backgroundColor: "#FE724C",
-    borderRadius: 30,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#FE724C",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-  },
-  checkoutText: {
-    fontFamily: "Adamina-Regular",
-    color: "#fff",
-    fontSize: 16,
-    // fontWeight: "800",
-    letterSpacing: 1,
-  },
-});
+    // ── Checkout Button ──────────────────────────────────────────────────────
+    checkoutBtn: {
+      marginHorizontal: spacing.xxl,
+      marginBottom: spacing.huge,
+      height: layout.buttonHeight,
+      backgroundColor: colors.primary,
+      borderRadius: radius.full,
+      alignItems: "center",
+      justifyContent: "center",
+      shadowColor: colors.primaryShadow,
+      ...shadows.cta,
+    },
+    checkoutText: {
+      fontFamily: typography.font.regular,
+      color: colors.textInverse,
+      fontSize: typography.size.lg,
+      letterSpacing: 1,
+    },
+  });

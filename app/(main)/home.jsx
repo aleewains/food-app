@@ -249,6 +249,7 @@ const getStyles = (colors, spacing, radius, typography) =>
     },
 
     foodSlider: {
+      // backgroundColor: "#000",
       marginHorizontal: -spacing.xl,
     },
 
@@ -256,7 +257,7 @@ const getStyles = (colors, spacing, radius, typography) =>
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginTop: spacing.lg,
+      marginTop: spacing.xs,
       marginBottom: spacing.sm,
     },
 

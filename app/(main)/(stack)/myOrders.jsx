@@ -21,41 +21,46 @@ import { addToCart, clearCart } from "../../../redux/cartSlice";
 import { Header } from "../../../components";
 import { useRouter } from "expo-router";
 import SlideWrapper from "../../../components/slideWrapper";
+import { useTheme, spacing, radius, typography, shadows } from "../../../theme";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
-const INITIAL_TAB_WIDTH = (SCREEN_WIDTH - 25 * 2 - 12) / 2;
+const INITIAL_TAB_WIDTH = (SCREEN_WIDTH - spacing.xxl * 2 - 12) / 2;
 
 export default function OrdersScreen() {
   const activeTabRef = useRef("Upcoming");
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
-
   const translateX = useRef(new Animated.Value(0)).current;
   const [tabWidth, setTabWidth] = useState(INITIAL_TAB_WIDTH);
-
   const upcomingTextRef = useRef(null);
   const historyTextRef = useRef(null);
-
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [reason, setReason] = useState("We don't have time");
   const [description, setDescription] = useState("");
 
   const router = useRouter();
+  const { colors } = useTheme();
 
   const handleTabPress = (tab, index) => {
     if (activeTabRef.current === tab) return;
     activeTabRef.current = tab;
 
-    // Instant color update — no re-render
     if (index === 0) {
-      upcomingTextRef.current?.setNativeProps({ style: { color: "#fff" } });
-      historyTextRef.current?.setNativeProps({ style: { color: "#9796A1" } });
+      upcomingTextRef.current?.setNativeProps({
+        style: { color: colors.textInverse },
+      });
+      historyTextRef.current?.setNativeProps({
+        style: { color: colors.textSubtle },
+      });
     } else {
-      upcomingTextRef.current?.setNativeProps({ style: { color: "#9796A1" } });
-      historyTextRef.current?.setNativeProps({ style: { color: "#fff" } });
+      upcomingTextRef.current?.setNativeProps({
+        style: { color: colors.textSubtle },
+      });
+      historyTextRef.current?.setNativeProps({
+        style: { color: colors.textInverse },
+      });
     }
 
-    // Slide indicator
     Animated.timing(translateX, {
       toValue: index * tabWidth,
       duration: 250,
@@ -63,7 +68,6 @@ export default function OrdersScreen() {
       useNativeDriver: true,
     }).start();
 
-    // Trigger re-render AFTER animation completes for FlatList data swap
     setTimeout(() => forceUpdate(), 260);
   };
 
@@ -178,16 +182,17 @@ export default function OrdersScreen() {
         params: { tab: "cart" },
       });
     } catch (error) {
-      console.error("Navigation failed:", error);
       Alert.alert("Error", "Could not process re-order.");
     }
   };
+
+  const styles = makeStyles(colors);
 
   const renderUpcoming = ({ item }) => (
     <View style={styles.card}>
       <StatusBar hidden={true} />
       <View style={styles.cardHeader}>
-        <View style={{ flex: 1, flexDirection: "row", gap: 12 }}>
+        <View style={{ flex: 1, flexDirection: "row", gap: spacing.md + 2 }}>
           <View style={styles.logoBox}>
             <Image source={{ uri: item.logo }} style={styles.logo} />
           </View>
@@ -214,8 +219,8 @@ export default function OrdersScreen() {
             style={[
               styles.statusText,
               {
-                color: item.status === "cancelled" ? "#FF4B4B" : "#00BFA5",
-                marginTop: 4,
+                color: item.status === "cancelled" ? colors.danger : "#00BFA5",
+                marginTop: spacing.xs,
               },
             ]}
           >
@@ -242,7 +247,7 @@ export default function OrdersScreen() {
   const renderHistory = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <View style={{ flex: 1, flexDirection: "row", gap: 12 }}>
+        <View style={{ flex: 1, flexDirection: "row", gap: spacing.md + 2 }}>
           <View style={styles.logoBox}>
             <Image source={{ uri: item.logo }} style={styles.logo} />
           </View>
@@ -279,8 +284,8 @@ export default function OrdersScreen() {
             style={[
               styles.statusText,
               {
-                color: item.status === "cancelled" ? "#FF4B4B" : "#00BFA5",
-                marginTop: 4,
+                color: item.status === "cancelled" ? colors.danger : "#00BFA5",
+                marginTop: spacing.xs,
               },
             ]}
           >
@@ -325,7 +330,6 @@ export default function OrdersScreen() {
           }}
         />
 
-        {/* Tab Switcher */}
         <View
           style={styles.tabContainer}
           onLayout={(e) => {
@@ -339,8 +343,6 @@ export default function OrdersScreen() {
               { width: tabWidth, transform: [{ translateX }] },
             ]}
           />
-
-          {/* Upcoming Tab */}
           <TouchableOpacity
             style={styles.tab}
             onPress={() => handleTabPress("Upcoming", 0)}
@@ -348,13 +350,11 @@ export default function OrdersScreen() {
           >
             <Text
               ref={upcomingTextRef}
-              style={[styles.tabText, { color: "#fff" }]}
+              style={[styles.tabText, { color: colors.textInverse }]}
             >
               Upcoming
             </Text>
           </TouchableOpacity>
-
-          {/* History Tab */}
           <TouchableOpacity
             style={styles.tab}
             onPress={() => handleTabPress("History", 1)}
@@ -362,7 +362,7 @@ export default function OrdersScreen() {
           >
             <Text
               ref={historyTextRef}
-              style={[styles.tabText, { color: "#9796A1" }]}
+              style={[styles.tabText, { color: colors.textSubtle }]}
             >
               History
             </Text>
@@ -408,22 +408,23 @@ export default function OrdersScreen() {
                 style={styles.closeIcon}
                 onPress={() => setModalVisible(false)}
               >
-                <Text style={{ color: "red", fontSize: 40 }}>×</Text>
+                <Text style={{ color: colors.danger, fontSize: 40 }}>×</Text>
               </TouchableOpacity>
 
               <Text style={styles.modalTitle}>Select a reason</Text>
               <View style={styles.dropdownPlaceholder}>
                 <Text style={styles.dropdownText}>{reason}</Text>
-                <Text>▼</Text>
+                <Text style={{ color: colors.textPrimary }}>▼</Text>
               </View>
 
-              <Text style={[styles.modalTitle, { marginTop: 25 }]}>
+              <Text style={[styles.modalTitle, { marginTop: spacing.xxl }]}>
                 Write a description (Optional)
               </Text>
               <TextInput
                 style={styles.textArea}
                 multiline
                 placeholder="Tell us more..."
+                placeholderTextColor={colors.textPlaceholder}
                 value={description}
                 onChangeText={setDescription}
               />
@@ -442,218 +443,256 @@ export default function OrdersScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FCFCFD" },
-  listContainer: {
-    flex: 1,
-    padding: 25,
-    paddingBottom: 40,
-    backgroundColor: "#FCFCFD",
-  },
-  tabContainer: {
-    flexDirection: "row",
-    borderColor: "#F2EAEA",
-    borderWidth: 1,
-    marginHorizontal: 25,
-    marginTop: 30,
-    borderRadius: 30,
-    padding: 5,
-    position: "relative",
-    overflow: "hidden",
-  },
-  indicator: {
-    position: "absolute",
-    top: 5,
-    bottom: 5,
-    left: 5,
-    backgroundColor: "#FE724C",
-    borderRadius: 25,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 15,
-    alignItems: "center",
-    borderRadius: 25,
-    zIndex: 1,
-  },
-  tabText: {
-    fontFamily: "Adamina-Regular",
-    fontWeight: "500",
-  },
-  emptyText: {
-    fontSize: 18,
-    fontFamily: "Adamina-Regular",
-    textAlign: "center",
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  card: {
-    padding: 15,
-    backgroundColor: "white",
-    borderRadius: 20,
-    marginTop: 5,
-    marginBottom: 20,
-    elevation: 8,
-    shadowColor: "#D3D1D840",
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 4 },
-  },
-  cardHeader: { flexDirection: "row" },
-  logoBox: {
-    width: 80,
-    height: 80,
-    backgroundColor: "white",
-    borderRadius: 15,
-    justifyContent: "center",
-    alignItems: "center",
-
-    shadowColor: "rgb(211, 209, 216)",
-
-    shadowOffset: {
-      width: 11.48,
-      height: 17.22,
+const makeStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    listContainer: {
+      flex: 1,
+      padding: spacing.xxl,
+      paddingBottom: 40,
+      backgroundColor: colors.background,
     },
 
-    shadowOpacity: 0.45,
+    // ── Tab Switcher ─────────────────────────────────────────────────────────
+    tabContainer: {
+      flexDirection: "row",
+      borderColor: colors.divider,
+      borderWidth: 1,
+      marginHorizontal: spacing.xxl,
+      marginTop: spacing.huge,
+      borderRadius: radius.full,
+      padding: spacing.xs + 1,
+      position: "relative",
+      overflow: "hidden",
+    },
+    indicator: {
+      position: "absolute",
+      top: 5,
+      bottom: 5,
+      left: 5,
+      backgroundColor: colors.primary,
+      borderRadius: radius.pill,
+    },
+    tab: {
+      flex: 1,
+      paddingVertical: spacing.lg,
+      alignItems: "center",
+      borderRadius: radius.pill,
+      zIndex: 1,
+    },
+    tabText: {
+      fontFamily: typography.font.regular,
+      fontWeight: "500",
+    },
 
-    shadowRadius: 22.96,
+    // ── Order Card ────────────────────────────────────────────────────────────
+    card: {
+      padding: spacing.lg,
+      backgroundColor: colors.surface,
+      borderRadius: radius.xl,
+      marginTop: spacing.xs - 1,
+      marginBottom: spacing.xl,
+      shadowColor: colors.shadowSoft,
+      ...shadows.soft,
+    },
+    cardHeader: {
+      flexDirection: "row",
+    },
+    logoBox: {
+      width: 80,
+      height: 80,
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: colors.shadowSoft,
+      shadowOffset: { width: 11.48, height: 17.22 },
+      shadowOpacity: 0.45,
+      shadowRadius: 22.96,
+      elevation: 18,
+    },
+    logo: {
+      width: 60,
+      height: 60,
+      resizeMode: "contain",
+    },
+    restaurantName: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.lg,
+      fontWeight: "600",
+      marginTop: 2,
+      color: colors.textPrimary,
+    },
+    itemCountText: {
+      fontFamily: typography.font.regular,
+      color: colors.textSubtle,
+      fontSize: typography.size.sm,
+    },
+    orderId: {
+      fontFamily: typography.font.regular,
+      color: colors.primary,
+      fontWeight: "600",
+    },
+    price: {
+      fontFamily: typography.font.regular,
+      color: colors.primary,
+      fontWeight: "600",
+      fontSize: typography.size.lg,
+    },
+    statusRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginVertical: spacing.lg,
+    },
+    label: {
+      fontFamily: typography.font.regular,
+      color: colors.textSubtle,
+      fontSize: typography.size.sm,
+    },
+    arrivalValue: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.h3,
+      fontWeight: "600",
+      color: colors.textPrimary,
+    },
+    minText: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.md,
+      fontWeight: "400",
+      color: colors.textPrimary,
+    },
+    statusText: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.lg,
+      fontWeight: "600",
+    },
 
-    elevation: 18,
-  },
-  logo: { width: 60, height: 60, resizeMode: "contain" },
-  restaurantName: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 16,
-    fontWeight: "600",
-    marginTop: 2,
-  },
-  itemCountText: {
-    fontFamily: "Adamina-Regular",
-    color: "#9796A1",
-    fontSize: 12,
-  },
-  orderId: {
-    fontFamily: "Adamina-Regular",
-    color: "#FE724C",
-    fontWeight: "600",
-  },
-  price: {
-    fontFamily: "Adamina-Regular",
-    color: "#FE724C",
-    fontWeight: "600",
-    fontSize: 16,
-  },
-  statusRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginVertical: 15,
-  },
-  label: { fontFamily: "Adamina-Regular", color: "#9796A1", fontSize: 12 },
-  arrivalValue: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 24,
-    fontWeight: "600",
-  },
-  minText: { fontFamily: "Adamina-Regular", fontSize: 14, fontWeight: "400" },
-  statusText: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  buttonRow: { flexDirection: "row", gap: 15, marginTop: 10 },
-  trackBtn: {
-    flex: 1,
-    backgroundColor: "#FE724C",
-    paddingVertical: 12,
-    borderRadius: 25,
-    alignItems: "center",
-  },
-  cancelBtn: {
-    flex: 1,
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#EEEEEE",
-    paddingVertical: 12,
-    borderRadius: 25,
-    alignItems: "center",
-  },
-  trackText: {
-    fontFamily: "Adamina-Regular",
-    color: "#fff",
-    fontWeight: "600",
-  },
-  cancelText: {
-    fontFamily: "Adamina-Regular",
-    color: "#000",
-    fontWeight: "500",
-  },
-  sectionTitle: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 22,
-    fontWeight: "600",
-    marginVertical: 15,
-  },
-  dateText: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#111719",
-  },
-  timeText: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 14,
-    color: "#9796A1",
-    fontWeight: "400",
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: "#FBFBFB",
-    borderRadius: 20,
-    padding: 25,
-    paddingTop: 10,
-    shadowColor: "#8f8f8f",
-    shadowOffset: { width: 0, height: 18.21 },
-    shadowOpacity: 0.1,
-    shadowRadius: 36,
-    elevation: 10,
-  },
-  closeIcon: { alignSelf: "flex-end" },
-  modalTitle: {
-    fontFamily: "Adamina-Regular",
-    fontSize: 18,
-    textAlign: "center",
-    marginBottom: 15,
-  },
-  dropdownPlaceholder: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    backgroundColor: "#FFFFFF",
-    padding: 15,
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: "#FFFFFF",
-  },
-  textArea: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 15,
-    padding: 15,
-    height: 120,
-    textAlignVertical: "top",
-    fontFamily: "Adamina-Regular",
-  },
-  confirmCancelBtn: {
-    backgroundColor: "#FF0000",
-    width: "60%",
-    borderRadius: 30,
-    paddingVertical: 15,
-    marginTop: 30,
-    alignItems: "center",
-    alignSelf: "center",
-  },
-  confirmCancelText: { color: "#FFF", fontWeight: "700", letterSpacing: 1 },
-});
+    // ── Card Buttons ──────────────────────────────────────────────────────────
+    buttonRow: {
+      flexDirection: "row",
+      gap: spacing.lg,
+      marginTop: spacing.md,
+    },
+    trackBtn: {
+      flex: 1,
+      backgroundColor: colors.primary,
+      paddingVertical: spacing.md + 2,
+      borderRadius: radius.pill,
+      alignItems: "center",
+    },
+    cancelBtn: {
+      flex: 1,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.dividerWeak,
+      paddingVertical: spacing.md + 2,
+      borderRadius: radius.pill,
+      alignItems: "center",
+    },
+    trackText: {
+      fontFamily: typography.font.regular,
+      color: colors.textInverse,
+      fontWeight: "600",
+    },
+    cancelText: {
+      fontFamily: typography.font.regular,
+      color: colors.textPrimary,
+      fontWeight: "500",
+    },
+
+    // ── Misc ──────────────────────────────────────────────────────────────────
+    sectionTitle: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.xxl + 2,
+      fontWeight: "600",
+      marginVertical: spacing.lg,
+      color: colors.textPrimary,
+    },
+    dateText: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.xl,
+      fontWeight: "600",
+      color: colors.textPrimary,
+    },
+    timeText: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.md,
+      color: colors.textSubtle,
+      fontWeight: "400",
+    },
+    emptyText: {
+      fontSize: typography.size.xl,
+      fontFamily: typography.font.regular,
+      textAlign: "center",
+      marginTop: spacing.xl,
+      marginBottom: spacing.xl,
+      color: colors.textPrimary,
+    },
+
+    // ── Cancel Modal ──────────────────────────────────────────────────────────
+    modalOverlay: {
+      flex: 1,
+      justifyContent: "center",
+      padding: spacing.xl,
+    },
+    modalContent: {
+      backgroundColor: colors.surfaceMuted,
+      borderRadius: radius.xl,
+      padding: spacing.xxl,
+      paddingTop: spacing.md,
+      shadowColor: colors.shadowSoft,
+      shadowOffset: { width: 0, height: 18.21 },
+      shadowOpacity: 0.1,
+      shadowRadius: 36,
+      elevation: 10,
+    },
+    closeIcon: {
+      alignSelf: "flex-end",
+    },
+    modalTitle: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.xl,
+      textAlign: "center",
+      marginBottom: spacing.lg,
+      color: colors.textPrimary,
+    },
+    dropdownPlaceholder: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      backgroundColor: colors.surface,
+      padding: spacing.lg,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.surface,
+    },
+    dropdownText: {
+      fontFamily: typography.font.regular,
+      color: colors.textPrimary,
+    },
+    textArea: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.lg,
+      height: 120,
+      textAlignVertical: "top",
+      fontFamily: typography.font.regular,
+      color: colors.textPrimary,
+    },
+    confirmCancelBtn: {
+      backgroundColor: "#FF0000",
+      width: "60%",
+      borderRadius: radius.full,
+      paddingVertical: spacing.lg,
+      marginTop: spacing.huge,
+      alignItems: "center",
+      alignSelf: "center",
+    },
+    confirmCancelText: {
+      color: colors.textInverse,
+      fontWeight: "700",
+      letterSpacing: 1,
+    },
+  });

@@ -1,23 +1,23 @@
 import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
-import React, { useState, useEffect } from "react";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import userService from "../services/firebaseService";
+import React from "react";
+import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchUserProfile } from "../redux/userSlice";
-import { fetchAddresses } from "../redux/addressSlice";
+import { useSelector } from "react-redux";
 import { ChevronLeft } from "lucide-react-native";
+import {
+  useTheme,
+  spacing,
+  radius,
+  typography,
+  shadows,
+  layout,
+  iconSize,
+} from "../theme";
 
 const Header = ({ showBackButton = false, title = "", onBackPress = null }) => {
   const router = useRouter();
-  // const dispatch = useDispatch();
+  const { colors } = useTheme();
   const { data: userData } = useSelector((state) => state.user);
-
-  // useEffect(() => {
-  //   dispatch(fetchUserProfile());
-  //   dispatch(fetchAddresses());
-  // }, []);
-
   const { addresses } = useSelector((state) => state.address);
   const currentAddress = addresses.find((a) => a.isDefault) || addresses[0];
 
@@ -31,11 +31,14 @@ const Header = ({ showBackButton = false, title = "", onBackPress = null }) => {
     if (onBackPress) {
       onBackPress();
     } else if (router.canGoBack()) {
-      router.back(); // This ensures the Left-to-Right slide
+      router.back();
     } else {
       router.replace("/(main)/(stack)/mainpager");
     }
   };
+
+  const styles = makeStyles(colors);
+
   return (
     <View style={styles.header}>
       {showBackButton ? (
@@ -44,7 +47,7 @@ const Header = ({ showBackButton = false, title = "", onBackPress = null }) => {
           onPress={handleBack}
           activeOpacity={0.8}
         >
-          <ChevronLeft size={20} color="#000" />
+          <ChevronLeft size={iconSize.lg} color={colors.textPrimary} />
         </TouchableOpacity>
       ) : (
         <TouchableOpacity
@@ -52,42 +55,16 @@ const Header = ({ showBackButton = false, title = "", onBackPress = null }) => {
           onPress={() => navigation.openDrawer()}
         >
           <View>
-            <View
-              style={{
-                width: 15,
-                height: 0,
-                backgroundColor: "black",
-                borderRadius: 12,
-                borderWidth: 1.3,
-                borderColor: "#111719",
-              }}
-            ></View>
-            <View
-              style={{
-                marginTop: 3,
-                width: 10,
-                height: 0,
-                borderRadius: 12,
-                borderWidth: 1.3,
-                borderColor: "#111719",
-              }}
-            ></View>
+            <View style={styles.hamburgerLong} />
+            <View style={styles.hamburgerShort} />
           </View>
         </TouchableOpacity>
       )}
 
       {title ? (
-        <Text
-          style={{
-            fontFamily: "Adamina-Regular",
-            fontSize: 18,
-            fontWeight: "600",
-          }}
-        >
-          {title}
-        </Text>
+        <Text style={styles.pageTitle}>{title}</Text>
       ) : (
-        <View style={styles.deliverAdress}>
+        <View style={styles.deliverAddress}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Text style={styles.deliverTo}>Deliver to</Text>
             <Image
@@ -95,7 +72,7 @@ const Header = ({ showBackButton = false, title = "", onBackPress = null }) => {
               style={{ height: 5.25, width: 8 }}
             />
           </View>
-          <Text style={styles.adressTo}>
+          <Text style={styles.addressTo}>
             {currentAddress ? currentAddress.street : "Select Address"}
           </Text>
         </View>
@@ -114,69 +91,87 @@ const Header = ({ showBackButton = false, title = "", onBackPress = null }) => {
 
 export default Header;
 
-const styles = StyleSheet.create({
-  header: {
-    marginTop: 25,
-    margin: 25,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  sideBar: {
-    width: 38,
-    height: 38,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 14,
-    shadowColor: "#E9EDF2",
-    shadowOffset: {
-      width: 0,
-      height: 15,
+const makeStyles = (colors) =>
+  StyleSheet.create({
+    header: {
+      marginTop: spacing.xxl,
+      margin: spacing.xxl,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: spacing.md,
     },
-    shadowOpacity: 0.9,
-    shadowRadius: 30, // blur = 30
-    elevation: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  deliverAdress: {
-    // alignContent: "center",
-    alignItems: "center",
-  },
-  deliverTo: {
-    fontFamily: "Adamina-Regular",
-    fontWeight: "400",
-    fontSize: 14,
-    lineHeight: "122%",
-    color: "#8C9099",
-    marginRight: 2,
-  },
-  adressTo: {
-    fontFamily: "Adamina-Regular",
-    fontWeight: "400",
-    fontSize: 15,
-    lineHeight: "122%",
-    color: "#FE724C",
-  },
-  profilePhoto: {
-    width: 38,
-    height: 38,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 14,
-    shadowColor: "#FFC5294D",
-    shadowOffset: {
-      width: 0,
-      height: 15,
+
+    // ── Sidebar / Back Button ────────────────────────────────────────────────
+    sideBar: {
+      width: layout.headerIconSize,
+      height: layout.headerIconSize,
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      shadowColor: colors.shadowCard,
+      ...shadows.floating,
+      justifyContent: "center",
+      alignItems: "center",
     },
-    shadowOpacity: 0.9, // 80% opacity becomes around 0.5–0.6
-    shadowRadius: 30, // blur = 30
-    elevation: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  profileImage: {
-    width: 38,
-    height: 38,
-    borderRadius: 14,
-  },
-});
+
+    // ── Hamburger Lines ──────────────────────────────────────────────────────
+    hamburgerLong: {
+      width: 15,
+      height: 0,
+      backgroundColor: colors.textPrimary,
+      borderRadius: radius.full,
+      borderWidth: 1.3,
+      borderColor: colors.textPrimary,
+    },
+    hamburgerShort: {
+      marginTop: 3,
+      width: 10,
+      height: 0,
+      borderRadius: radius.full,
+      borderWidth: 1.3,
+      borderColor: colors.textPrimary,
+    },
+
+    // ── Address Block ────────────────────────────────────────────────────────
+    deliverAddress: {
+      alignItems: "center",
+    },
+    deliverTo: {
+      fontFamily: typography.font.regular,
+      fontWeight: "400",
+      fontSize: typography.size.md,
+      color: colors.textMuted,
+      marginRight: 2,
+    },
+    addressTo: {
+      fontFamily: typography.font.regular,
+      fontWeight: "400",
+      fontSize: typography.size.md + 1,
+      color: colors.primary,
+    },
+
+    // ── Page Title (when title prop is passed) ───────────────────────────────
+    pageTitle: {
+      fontFamily: typography.font.regular,
+      fontSize: typography.size.xl,
+      fontWeight: "600",
+      color: colors.textPrimary,
+    },
+
+    // ── Profile Photo ────────────────────────────────────────────────────────
+    profilePhoto: {
+      width: layout.headerIconSize,
+      height: layout.headerIconSize,
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      shadowColor: colors.shadowProfile,
+      ...shadows.floating,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    profileImage: {
+      width: layout.headerIconSize,
+      height: layout.headerIconSize,
+      borderRadius: radius.lg,
+    },
+  });

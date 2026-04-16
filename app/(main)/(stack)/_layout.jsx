@@ -9,11 +9,11 @@ export default function StackLayout() {
         contentStyle: { backgroundColor: "#f3f3f3" }, // App BG color
         detachPreviousScreen: false, // STOPS the white flash
         presentation: "card",
-        freezeOnBlur: true,
+        freezeOnBlur: false,
       }}
     >
       {/* The Drawer lives inside this Stack entry */}
-      <Stack.Screen name="mainpager" options={{ animation: "simple_push" }} />
+      <Stack.Screen name="mainpager" options={{ animation: "none" }} />
 
       {/* These screens are  "above" the drawer, allowing them to slide over it */}
       <Stack.Screen name="search-results" />

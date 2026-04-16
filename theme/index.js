@@ -131,7 +131,7 @@ export const spacing = {
   xl: 20,
   xxl: 25,
   xxxl: 100,
-  huge: 30,
+  huge: 60,
 };
 
 // ─── BORDER RADIUS ───────────────────────────────────────────────────────────
@@ -199,7 +199,7 @@ export const shadows = {
   // For primary CTA buttons (colored shadow)
   cta: {
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.15,
     shadowRadius: 10,
     elevation: 4,
   },

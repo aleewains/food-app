@@ -16,11 +16,20 @@ import FoodDetailModal from "../../../components/FoodDetailModal";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart, clearCart, clearError } from "../../../redux/cartSlice";
 import { toggleFavorite } from "../../../redux/favoriteSlice";
-import { getReviews, clearReviews } from "../../../redux/restaurantSlice"; // Merged Slice
+import { getReviews } from "../../../redux/restaurantSlice";
 import ItemCard from "../../../components/itemCard";
 import SlideWrapper from "../../../components/slideWrapper";
 import { BottomNav } from "../../../components";
 import { LinearGradient } from "expo-linear-gradient";
+import {
+  useTheme,
+  spacing,
+  radius,
+  typography,
+  shadows,
+  iconSize,
+  layout,
+} from "../../../theme";
 
 export default function FoodDetailsScreen() {
   const [selectedItem, setSelectedItem] = useState(null);
@@ -31,45 +40,33 @@ export default function FoodDetailsScreen() {
   const dispatch = useDispatch();
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { colors } = useTheme();
 
-  // 1. SELECTORS: Get live data from the merged restaurant slice
   const { data: allRestaurants } = useSelector((state) => state.restaurants);
   const { error: cartError } = useSelector((state) => state.cart);
   const { items: favoriteItems } = useSelector((state) => state.favorites);
 
-  // Parse local params safely
   const [parsedRestaurant] = React.useState(() =>
     params.restaurant ? JSON.parse(params.restaurant) : null,
   );
 
-  // 2. FIND LIVE DATA: Find this restaurant in the global list to get updated ratings/reviews
   const restaurantData =
     allRestaurants.find((r) => r.id === parsedRestaurant?.id) ||
     parsedRestaurant;
   const menuItems = restaurantData?.menu || [];
 
-  // 3. INITIAL FETCH: Get reviews when screen loads
   useEffect(() => {
-    if (restaurantData?.id) {
-      dispatch(getReviews(restaurantData.id));
-    }
+    if (restaurantData?.id) dispatch(getReviews(restaurantData.id));
   }, [restaurantData?.id]);
 
-  // Handle Menu Item Counters
   useEffect(() => {
-    if (menuItems.length) {
-      setCounts(Array(menuItems.length).fill(0));
-    }
+    if (menuItems.length) setCounts(Array(menuItems.length).fill(0));
   }, [menuItems.length]);
 
-  // Modal logic
   useEffect(() => {
-    if (modalVisible) {
-      setSelectedAddon(null);
-    }
+    if (modalVisible) setSelectedAddon(null);
   }, [modalVisible]);
 
-  // Handle Cart Errors
   useEffect(() => {
     if (cartError) {
       Alert.alert("Cart Error", cartError, [
@@ -105,14 +102,11 @@ export default function FoodDetailsScreen() {
     const itemsToAdd = menuItems
       .map((item, index) => {
         if (counts[index] === 0) return null;
-
         const selectedAddonObj =
           selectedItem && selectedAddon !== null
             ? selectedItem.addOns[selectedAddon]
             : null;
-
         const addonsArray = selectedAddonObj ? [selectedAddonObj] : [];
-
         const newItem = {
           cartItemId: `${item.id}-${Date.now()}-${Math.random()}`,
           itemId: item.id,
@@ -127,9 +121,6 @@ export default function FoodDetailsScreen() {
           restaurantId: restaurantData.id,
           restaurantName: restaurantData.name,
         };
-
-        // console.log(newItem);
-
         newItem.total =
           newItem.quantity *
           (newItem.price + newItem.addons.reduce((sum, a) => sum + a.price, 0));
@@ -140,16 +131,12 @@ export default function FoodDetailsScreen() {
             .map((a) => a.id)
             .sort()
             .join("-") || "");
-
         return newItem;
       })
       .filter(Boolean);
 
     if (itemsToAdd.length === 0) return;
-
     itemsToAdd.forEach((item) => dispatch(addToCart(item)));
-
-    // Reset UI
     setCounts(Array(menuItems.length).fill(0));
     setSelectedAddon(null);
     setSelectedItem(null);
@@ -174,6 +161,8 @@ export default function FoodDetailsScreen() {
     });
   };
 
+  const styles = makeStyles(colors);
+
   return (
     <SlideWrapper>
       <View style={styles.container}>
@@ -181,13 +170,12 @@ export default function FoodDetailsScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 120 }}
         >
-          {/* HEADER IMAGE */}
           <ImageBackground
             source={{ uri: restaurantData?.imageUrl }}
             style={styles.headerImage}
           >
             <LinearGradient
-              colors={["rgba(0,0,0,0.15)", "rgba(0, 0, 0, 0.48)"]}
+              colors={["rgba(0,0,0,0.15)", "rgba(0,0,0,0.48)"]}
               style={StyleSheet.absoluteFillObject}
             />
             <View style={styles.headerActions}>
@@ -196,7 +184,7 @@ export default function FoodDetailsScreen() {
                 style={styles.iconCircle}
                 activeOpacity={0.8}
               >
-                <ChevronLeft size={20} color="#000" />
+                <ChevronLeft size={iconSize.lg} color={colors.textPrimary} />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() =>
@@ -206,17 +194,21 @@ export default function FoodDetailsScreen() {
                 activeOpacity={0.8}
               >
                 <Heart
-                  size={20}
-                  color={isRestFav ? "#FE724C" : "#FE724C"}
-                  fill={isRestFav ? "#FE724C" : "transparent"}
+                  size={iconSize.lg}
+                  color={colors.primary}
+                  fill={isRestFav ? colors.primary : "transparent"}
                 />
               </TouchableOpacity>
             </View>
 
-            <View style={styles.headerInfo}>
+            <View>
               <Text style={styles.restaurantName}>{restaurantData?.name}</Text>
               <View style={styles.ratingRow}>
-                <Star size={16} color="#FFC529" fill="#FFC529" />
+                <Star
+                  size={iconSize.sm}
+                  color={colors.star}
+                  fill={colors.star}
+                />
                 <Text style={styles.ratingText}>
                   {" "}
                   {restaurantData?.averageRating || 0}{" "}
@@ -239,7 +231,6 @@ export default function FoodDetailsScreen() {
             </View>
           </ImageBackground>
 
-          {/* MENU ITEMS */}
           <View style={styles.menuContainer}>
             {menuItems.map((item, index) => (
               <ItemCard
@@ -258,7 +249,6 @@ export default function FoodDetailsScreen() {
           </View>
         </ScrollView>
 
-        {/* ADD TO CART BUTTON */}
         <View style={styles.bottomActions}>
           <TouchableOpacity
             style={styles.addToCartBtn}
@@ -287,77 +277,94 @@ export default function FoodDetailsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FCFCFD" },
-  headerImage: { height: 188, justifyContent: "space-between", padding: 22 },
-  gradientOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.35)",
-  },
-  headerActions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 10,
-  },
-  iconCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: "#fff",
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  headerInfo: {},
-  restaurantName: {
-    fontSize: 36,
-    color: "#fff",
-    fontFamily: "Adamina-Regular",
-  },
-  ratingRow: { flexDirection: "row", alignItems: "center", marginTop: 5 },
-  ratingText: { fontFamily: "Adamina-Regular", color: "#fff", fontSize: 14 },
-  reviewCount: { color: "#eee", fontWeight: "normal" },
-  seeReview: {
-    fontFamily: "Adamina-Regular",
-    color: "#FE724C",
-    textDecorationLine: "underline",
-    marginLeft: 10,
-  },
-  menuContainer: { padding: 20 },
-  bottomActions: {
-    position: "absolute",
-    bottom: 30,
-    left: 0,
-    right: 0,
-    alignItems: "center",
-  },
-  addToCartBtn: {
-    width: 167,
-    height: 53,
-    backgroundColor: "#FE724C",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 6,
-    borderRadius: 30,
-    elevation: 4,
-    shadowColor: "#FE724C",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-  },
-  cartIconCircle: {
-    width: 40,
-    height: 40,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 20,
-    marginRight: 10,
-  },
-  addToCartText: { fontFamily: "Adamina-Regular", color: "#fff", fontSize: 15 },
-  logo: { width: 16, height: 17 },
-});
+const makeStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    headerImage: {
+      height: 188,
+      justifyContent: "space-between",
+      padding: spacing.xxl - 3,
+    },
+    headerActions: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: spacing.md,
+    },
+    iconCircle: {
+      width: layout.headerIconSize,
+      height: layout.headerIconSize,
+      borderRadius: radius.md,
+      backgroundColor: colors.surface,
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: colors.shadowSoft,
+      ...shadows.card,
+    },
+    restaurantName: {
+      fontSize: typography.size.h1,
+      color: colors.textInverse,
+      fontFamily: typography.font.regular,
+    },
+    ratingRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: spacing.xs + 1,
+    },
+    ratingText: {
+      fontFamily: typography.font.regular,
+      color: colors.textInverse,
+      fontSize: typography.size.md,
+    },
+    reviewCount: {
+      color: colors.divider,
+      fontWeight: "normal",
+    },
+    seeReview: {
+      fontFamily: typography.font.regular,
+      color: colors.primary,
+      textDecorationLine: "underline",
+      marginLeft: spacing.md,
+    },
+    menuContainer: {
+      padding: spacing.xl,
+    },
+    bottomActions: {
+      position: "absolute",
+      bottom: spacing.huge,
+      left: 0,
+      right: 0,
+      alignItems: "center",
+    },
+    addToCartBtn: {
+      width: 167,
+      height: 53,
+      backgroundColor: colors.primary,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: spacing.xs + 2,
+      borderRadius: radius.full,
+      shadowColor: colors.primaryShadow,
+      ...shadows.cta,
+    },
+    cartIconCircle: {
+      width: 40,
+      height: 40,
+      backgroundColor: colors.surface,
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: radius.circle,
+      marginRight: spacing.md,
+    },
+    addToCartText: {
+      fontFamily: typography.font.regular,
+      color: colors.textInverse,
+      fontSize: typography.size.md + 1,
+    },
+    logo: {
+      width: 16,
+      height: 17,
+    },
+  });

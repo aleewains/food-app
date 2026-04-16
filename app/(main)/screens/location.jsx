@@ -1,7 +1,11 @@
 import { StyleSheet, Text, View } from "react-native";
 import React from "react";
+import { useTheme, typography } from "../../../theme";
 
 const Location = () => {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+
   return (
     <View style={styles.container}>
       <View style={styles.placeholderBox}>
@@ -16,26 +20,27 @@ const Location = () => {
 
 export default Location;
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f8f9fa", // Light neutral background
-  },
-  placeholderBox: {
-    padding: 20,
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#888",
-    fontStyle: "italic",
-  },
-});
+const makeStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: colors.background,
+    },
+    placeholderBox: {
+      padding: 20,
+      alignItems: "center",
+    },
+    title: {
+      fontSize: typography.size.xxl,
+      fontWeight: "600",
+      color: colors.textPrimary,
+      marginBottom: 8,
+    },
+    subtitle: {
+      fontSize: typography.size.md,
+      color: colors.textSubtle,
+      fontStyle: "italic",
+    },
+  });

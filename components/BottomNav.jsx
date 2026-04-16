@@ -1,11 +1,12 @@
-import { View, StyleSheet, Pressable, Image, Text } from "react-native";
-import { useSelector } from "react-redux";
 import React, { useEffect } from "react";
+import { View, Image, Text, StyleSheet, Pressable } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
 } from "react-native-reanimated";
+import { useSelector } from "react-redux";
+import { useTheme } from "../theme";
 
 const TABS = [
   { key: "home", icon: require("../assets/icons/compass.png") },
@@ -14,9 +15,9 @@ const TABS = [
   { key: "favorite", icon: require("../assets/icons/heart.png") },
 ];
 
-// Animated wrapper for each icon
+// ─── Animated scale wrapper ───────────────────────────────────────────────────
 const AnimatedIcon = ({ isActive, children }) => {
-  const scale = useSharedValue(isActive ? 1.2 : 1);
+  const scale = useSharedValue(isActive ? 1.15 : 1);
 
   useEffect(() => {
     scale.value = withSpring(isActive ? 1.15 : 1, {
@@ -32,7 +33,11 @@ const AnimatedIcon = ({ isActive, children }) => {
   return <Animated.View style={animatedStyle}>{children}</Animated.View>;
 };
 
+// ─── Bottom Nav ───────────────────────────────────────────────────────────────
 export default function BottomNav({ activeTab, onChange, onReselect }) {
+  const { colors, spacing, radius, typography } = useTheme();
+  const styles = getStyles(colors, spacing, radius, typography);
+
   const cartItems = useSelector((state) => state.cart.items);
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -46,26 +51,27 @@ export default function BottomNav({ activeTab, onChange, onReselect }) {
             <Pressable
               key={tab.key}
               onPress={() => {
-                if (isActive && onReselect) {
-                  onReselect(tab.key);
-                } else {
-                  onChange(tab.key);
-                }
+                isActive && onReselect
+                  ? onReselect(tab.key)
+                  : onChange(tab.key);
               }}
               style={styles.item}
             >
               <AnimatedIcon isActive={isActive}>
-                <View style={[styles.iconWrapper]}>
+                <View style={styles.iconWrapper}>
                   <Image
                     source={tab.icon}
                     style={[
                       styles.icon,
-                      { tintColor: isActive ? "#FE724C" : "#C9C9CE" },
+                      {
+                        tintColor: isActive ? colors.primary : colors.textLight,
+                      },
                     ]}
                   />
                 </View>
               </AnimatedIcon>
 
+              {/* Cart badge */}
               {tab.key === "cart" && cartCount > 0 && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>{cartCount}</Text>
@@ -79,50 +85,56 @@ export default function BottomNav({ activeTab, onChange, onReselect }) {
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    bottom: 30,
-  },
-  container: {
-    flexDirection: "row",
-    justifyContent: "space-around", // better than space-between
-    alignItems: "center",
-    backgroundColor: "#fff",
-    paddingVertical: 12,
-    height: 70,
-  },
-  item: {
-    width: 50,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  iconWrapper: {
-    // backgroundColor: "#b21616",
-    width: 42,
-    height: 42,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  icon: {
-    // backgroundColor: "#b21616",
-    width: 26,
-    height: 26,
-    resizeMode: "contain",
-  },
-  badge: {
-    position: "absolute",
-    top: -6,
-    right: -2,
-    backgroundColor: "#FFC529",
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  badgeText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-});
+// ─────────────────────────────────────────────────────────────────────────────
+const getStyles = (colors, spacing, radius, typography) =>
+  StyleSheet.create({
+    wrapper: {
+      bottom: 30,
+    },
+
+    container: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      alignItems: "center",
+      backgroundColor: colors.surface,
+      paddingVertical: spacing.md + 2,
+      height: 70,
+    },
+
+    item: {
+      width: 50,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    iconWrapper: {
+      width: 42,
+      height: 42,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    icon: {
+      width: 26,
+      height: 26,
+      resizeMode: "contain",
+    },
+
+    badge: {
+      position: "absolute",
+      top: -6,
+      right: -2,
+      backgroundColor: colors.star, // yellow badge — same token used for star ratings
+      width: 22,
+      height: 22,
+      borderRadius: radius.circle,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    badgeText: {
+      color: colors.textInverse,
+      fontSize: typography.size.sm,
+      fontWeight: "600",
+    },
+  });

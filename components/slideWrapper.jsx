@@ -7,8 +7,10 @@ import Animated, {
   SlideOutLeft,
 } from "react-native-reanimated";
 import { View, StyleSheet } from "react-native";
+import { colors, useTheme } from "../theme";
 
 export default function SlideWrapper({ children }) {
+  const { colors } = useTheme();
   const progress = useDrawerProgress();
 
   // The Drawer Scaling Logic
@@ -24,6 +26,8 @@ export default function SlideWrapper({ children }) {
     };
   });
 
+  const styles = makeStyles(colors);
+
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.main, animatedStyle]}>
@@ -33,7 +37,8 @@ export default function SlideWrapper({ children }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#efefef" },
-  main: { flex: 1, backgroundColor: "#fff" },
-});
+const makeStyles = (colors) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.surfaceAlt },
+    main: { flex: 1, backgroundColor: colors.surface },
+  });

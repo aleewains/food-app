@@ -14,14 +14,12 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useSelector, useDispatch } from "react-redux";
 import { Header } from "../../../components";
 import { useRouter } from "expo-router";
-
-// Redux Actions
 import { fetchFavorites, toggleFavorite } from "../../../redux/favoriteSlice";
 import { fetchRestaurants } from "../../../redux/restaurantSlice";
-
-// Components
 import ItemCard from "../../../components/itemCard";
 import { RestaurantCard } from "../../../components";
+import { useTheme, spacing, radius, typography } from "../../../theme";
+
 const { width } = Dimensions.get("window");
 
 export default function FavoritesScreen() {
@@ -31,16 +29,11 @@ export default function FavoritesScreen() {
 
   const router = useRouter();
   const dispatch = useDispatch();
+  const { colors } = useTheme();
 
-  //  Get Favorite IDs from the favoriteSlice
-  const { items: favoriteIds, loading: favLoading } = useSelector(
-    (state) => state.favorites,
-  );
-
-  //  Get Full Data from the restaurantSlice
+  const { items: favoriteIds } = useSelector((state) => state.favorites);
   const allRestaurants = useSelector((state) => state.restaurants.data || []);
 
-  //  Map IDs to Full Objects
   const allFoodItems = allRestaurants.flatMap((res) =>
     (res.menu || []).map((food) => ({
       ...food,
@@ -49,6 +42,7 @@ export default function FavoritesScreen() {
       restaurantName: res.name,
     })),
   );
+
   const favoriteFoods = favoriteIds
     .filter((fav) => fav.type === "food")
     .map((fav) => allFoodItems.find((food) => food.id === fav.id))
@@ -59,14 +53,12 @@ export default function FavoritesScreen() {
     .map((fav) => {
       const restaurant = allRestaurants.find((res) => res.id === fav.id);
       if (!restaurant) return undefined;
-
-      // Extract menu item names as tags (Logic from your HomeScreen)
       const menuTags = restaurant.menu?.map((item) => item.name) || [];
-      const uniqueTags = [...new Set(menuTags)].slice(0, 3); // Slice to keep it clean
-
+      const uniqueTags = [...new Set(menuTags)].slice(0, 3);
       return { ...restaurant, tags: uniqueTags };
     })
     .filter((item) => item !== undefined);
+
   useEffect(() => {
     dispatch(fetchFavorites());
     dispatch(fetchRestaurants());
@@ -90,9 +82,7 @@ export default function FavoritesScreen() {
       onPressCard={() =>
         router.push({
           pathname: "/(stack)/FoodDetailsScreen",
-          params: {
-            restaurant: JSON.stringify(item.parentRestaurant),
-          },
+          params: { restaurant: JSON.stringify(item.parentRestaurant) },
         })
       }
     />
@@ -104,9 +94,9 @@ export default function FavoritesScreen() {
       rating={item.averageRating || 0}
       reviewCount={item.reviewCount || 0}
       deliveryTime={item.deliveryTime || "25-30 min"}
-      deliveryFee={item.deliveryFee} // 0 will show "Free Delivery" per your component logic
+      deliveryFee={item.deliveryFee}
       isVerified={item.isVerified}
-      imageUrl={{ uri: item.imageUrl }} // Your card expects a source object
+      imageUrl={{ uri: item.imageUrl }}
       tags={item.tags || ["Burger", "Pizza"]}
       isFavorite={true}
       onPressFavorite={() =>
@@ -115,18 +105,17 @@ export default function FavoritesScreen() {
       onPressCard={() =>
         router.push({
           pathname: "/(stack)/FoodDetailsScreen",
-          params: {
-            restaurant: JSON.stringify(item),
-          },
+          params: { restaurant: JSON.stringify(item) },
         })
       }
     />
   );
 
   const handleBack = () => {
-    // Instead of router.back(), we tell the PagerView to move to index 0 (Home)
     DeviceEventEmitter.emit("CHANGE_TAB", { tab: "home" });
   };
+
+  const styles = makeStyles(colors);
 
   return (
     <SafeAreaProvider style={styles.container}>
@@ -149,7 +138,6 @@ export default function FavoritesScreen() {
             { width: tabWidth, transform: [{ translateX }] },
           ]}
         />
-
         {["Food Items", "Restaurants"].map((tab, index) => (
           <TouchableOpacity
             key={tab}
@@ -175,13 +163,16 @@ export default function FavoritesScreen() {
           data={
             activeTab === "Food Items" ? favoriteFoods : favoriteRestaurants
           }
-          numColumns={1} // Both lists are now vertical full-width cards
+          numColumns={1}
           keyExtractor={(item) => item.id.toString()}
           renderItem={
             activeTab === "Food Items" ? renderFoodItem : renderRestaurant
           }
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 20, padding: 20 }}
+          contentContainerStyle={{
+            paddingBottom: spacing.xl,
+            padding: spacing.xl,
+          }}
           ListEmptyComponent={
             <Text style={styles.emptyText}>Nothing here yet!</Text>
           }
@@ -191,34 +182,51 @@ export default function FavoritesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FCFCFD" },
-  listContainer: { flex: 1, marginTop: 15 },
-  tabContainer: {
-    flexDirection: "row",
-    borderColor: "#F2EAEA",
-    borderWidth: 1,
-    marginHorizontal: 25,
-    marginTop: 30,
-    borderRadius: 30,
-    padding: 5,
-    position: "relative",
-  },
-  indicator: {
-    position: "absolute",
-    top: 5,
-    bottom: 5,
-    left: 5,
-    backgroundColor: "#FE724C",
-    borderRadius: 25,
-  },
-  tab: { flex: 1, paddingVertical: 15, alignItems: "center", zIndex: 1 },
-  tabText: { fontFamily: "Adamina-Regular", color: "#9796A1" },
-  activeTabText: { color: "#fff" },
-  emptyText: {
-    textAlign: "center",
-    marginTop: 50,
-    color: "#9796A1",
-    fontFamily: "Adamina-Regular",
-  },
-});
+const makeStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    listContainer: {
+      flex: 1,
+      marginTop: spacing.lg,
+    },
+    tabContainer: {
+      flexDirection: "row",
+      borderColor: colors.divider,
+      borderWidth: 1,
+      marginHorizontal: spacing.xxl,
+      marginTop: spacing.huge,
+      borderRadius: radius.full,
+      padding: spacing.xs + 1,
+      position: "relative",
+    },
+    indicator: {
+      position: "absolute",
+      top: 5,
+      bottom: 5,
+      left: 5,
+      backgroundColor: colors.primary,
+      borderRadius: radius.pill,
+    },
+    tab: {
+      flex: 1,
+      paddingVertical: spacing.lg,
+      alignItems: "center",
+      zIndex: 1,
+    },
+    tabText: {
+      fontFamily: typography.font.regular,
+      color: colors.textSubtle,
+    },
+    activeTabText: {
+      color: colors.textInverse,
+    },
+    emptyText: {
+      textAlign: "center",
+      marginTop: 50,
+      color: colors.textSubtle,
+      fontFamily: typography.font.regular,
+    },
+  });
