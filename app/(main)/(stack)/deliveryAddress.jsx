@@ -65,7 +65,7 @@ export default function DeliveryAddress() {
   }
 
   return (
-    <SlideWrapper>
+    <SlideWrapper disableEnterAnimation>
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     margin: 20,
     padding: 18,
     borderRadius: 30,
-    marginBottom: 30,
+    marginBottom: 60,
     alignItems: "center",
   },
   addText: {

@@ -319,7 +319,7 @@ export default function OrdersScreen() {
   );
 
   return (
-    <SlideWrapper>
+    <SlideWrapper disableEnterAnimation>
       <SafeAreaProvider style={styles.container}>
         <Header
           showBackButton={true}

@@ -134,7 +134,7 @@ export default function ProfileScreen() {
   //   );
 
   return (
-    <SlideWrapper>
+    <SlideWrapper disableEnterAnimation>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
