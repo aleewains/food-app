@@ -197,7 +197,7 @@ const makeStyles = (colors) =>
       borderColor: colors.divider,
       borderWidth: 1,
       marginHorizontal: spacing.xxl,
-      marginTop: spacing.huge,
+      marginTop: spacing.lg,
       borderRadius: radius.full,
       padding: spacing.xs + 1,
       position: "relative",

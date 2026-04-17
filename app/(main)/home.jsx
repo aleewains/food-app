@@ -274,7 +274,7 @@ const getStyles = (colors, spacing, radius, typography) =>
 
     ViewAllText: {
       fontFamily: typography.font.regular,
-      fontSize: typography.size.sm,
+      fontSize: typography.size.md,
       color: colors.primary,
     },
 

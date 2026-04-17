@@ -16,9 +16,10 @@ const SCREEN_WIDTH = Dimensions.get("window").width;
 export default function SlideWrapper({
   children,
   disableEnterAnimation = false,
+  disableDrawerAnimation = false,
 }) {
   const { colors } = useTheme();
-  const progress = useDrawerProgress();
+  const progress = disableDrawerAnimation ? null : useDrawerProgress();
   const navigation = useNavigation();
   const translateX = useSharedValue(disableEnterAnimation ? 0 : SCREEN_WIDTH);
   const styles = makeStyles(colors);
@@ -55,6 +56,9 @@ export default function SlideWrapper({
 
   // Drawer scale/translate animation
   const drawerStyle = useAnimatedStyle(() => {
+    if (disableDrawerAnimation || !progress) {
+      return {};
+    }
     const scale = interpolate(progress.value, [0, 1], [1, 0.75]);
     const borderRadius = interpolate(progress.value, [0, 1], [0, 30]);
     const drawerTranslateX = interpolate(progress.value, [0, 1], [0, 250]);

@@ -43,7 +43,16 @@ export default function AuthLayout() {
     <>
       {/* Hide the status bar (time/battery) */}
       <StatusBar hidden={true} />
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          detachPreviousScreen: false,
+          freezeOnBlur: false,
+          presentation: "transparentModal",
+          animation: "none", // SlideWrapper owns ALL animation
+          gestureEnabled: false, // we handle back ourselves in SlideWrapper
+        }}
+      >
         <Stack.Screen name="logIn" />
         <Stack.Screen name="signUp" />
       </Stack>

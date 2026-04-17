@@ -21,6 +21,8 @@ import { useFonts } from "expo-font";
 import CustomInput from "../../components/CustomInput";
 import { useUI } from "../../context/UIContext";
 import { useTheme } from "../../theme";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import SlideWrapper from "../../components/slideWrapper";
 
 const Login = () => {
   const { colors, spacing, radius, typography, shadows } = useTheme();
@@ -93,65 +95,73 @@ const Login = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.ellipseC}>
-        <Image
-          source={require("../../assets/elipse-1.png")}
-          style={[styles.ellipse, styles.topLeft]}
+    <SlideWrapper disableDrawerAnimation>
+      <View style={styles.container}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="chevron-back" size={22} color={colors.textPrimary} />
+        </TouchableOpacity>
+        <View style={styles.ellipseC}>
+          <Image
+            source={require("../../assets/elipse-1.png")}
+            style={[styles.ellipse, styles.topLeft]}
+          />
+          <Image
+            source={require("../../assets/elipse-2.png")}
+            style={[styles.ellipse, styles.topRight]}
+          />
+          <Image
+            source={require("../../assets/elipse-3.png")}
+            style={[styles.ellipse, styles.topRight2]}
+          />
+        </View>
+
+        <Text style={styles.title}>Sign{"\n"}Up</Text>
+        <CustomInput
+          label="Full name"
+          placeholder="Enter Your Name"
+          value={fullName}
+          onChangeText={setFullName}
         />
-        <Image
-          source={require("../../assets/elipse-2.png")}
-          style={[styles.ellipse, styles.topRight]}
+        <CustomInput
+          label="E-mail"
+          placeholder="Enter Your E-mail"
+          value={email}
+          onChangeText={(txt) => {
+            setEmail(txt);
+            setErrors((prev) => ({ ...prev, email: "" }));
+          }}
+          error={errors.email}
         />
-        <Image
-          source={require("../../assets/elipse-3.png")}
-          style={[styles.ellipse, styles.topRight2]}
+
+        <CustomInput
+          label="Password"
+          placeholder="••••••••"
+          secureTextEntry
+          value={password}
+          onChangeText={(txt) => {
+            setPassword(txt);
+            setErrors((prev) => ({ ...prev, password: "" }));
+          }}
+          error={errors.password}
         />
+        <TouchableOpacity
+          onPress={handleCreate}
+          style={styles.button}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.buttonT}>SIGN UP</Text>
+        </TouchableOpacity>
+        <Text
+          style={styles.createAcc}
+          onPress={() => router.push("/(auth)/logIn")}
+        >
+          Already have an account? <Text style={styles.loginText}>Login</Text>
+        </Text>
       </View>
-
-      <Text style={styles.title}>Sign{"\n"}Up</Text>
-      <CustomInput
-        label="Full name"
-        placeholder="Enter Your Name"
-        value={fullName}
-        onChangeText={setFullName}
-      />
-      <CustomInput
-        label="E-mail"
-        placeholder="Enter Your E-mail"
-        value={email}
-        onChangeText={(txt) => {
-          setEmail(txt);
-          setErrors((prev) => ({ ...prev, email: "" }));
-        }}
-        error={errors.email}
-      />
-
-      <CustomInput
-        label="Password"
-        placeholder="••••••••"
-        secureTextEntry
-        value={password}
-        onChangeText={(txt) => {
-          setPassword(txt);
-          setErrors((prev) => ({ ...prev, password: "" }));
-        }}
-        error={errors.password}
-      />
-      <TouchableOpacity
-        onPress={handleCreate}
-        style={styles.button}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.buttonT}>SIGN UP</Text>
-      </TouchableOpacity>
-      <Text
-        style={styles.createAcc}
-        onPress={() => router.push("/(auth)/logIn")}
-      >
-        Already have an account? <Text style={styles.loginText}>Login</Text>
-      </Text>
-    </View>
+    </SlideWrapper>
   );
 };
 
@@ -163,6 +173,21 @@ const getStyles = (colors, spacing, radius, typography, shadows, cta) =>
       backgroundColor: colors.background,
       width: "100%",
       height: "100%",
+    },
+
+    backButton: {
+      position: "absolute",
+      width: 38,
+      height: 38,
+      top: 37,
+      left: 27,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      zIndex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: colors.shadowSoft,
+      ...shadows.card,
     },
 
     ellipseC: {

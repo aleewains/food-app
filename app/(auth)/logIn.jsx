@@ -12,8 +12,8 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../utils/firebase";
 import { router } from "expo-router";
 import CustomInput from "../../components/CustomInput";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTheme } from "../../theme";
+import SlideWrapper from "../../components/slideWrapper";
 
 const Login = () => {
   const { colors, spacing, radius, typography, shadows } = useTheme();
@@ -59,82 +59,78 @@ const Login = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => router.push("/(auth)/signUp")}
-      >
-        <Ionicons name="chevron-back" size={22} color={colors.textPrimary} />
-      </TouchableOpacity>
-      <View style={styles.ellipseC}>
-        <Image
-          source={require("../../assets/elipse-1.png")}
-          style={[styles.ellipse, styles.topLeft]}
-        />
-        <Image
-          source={require("../../assets/elipse-2.png")}
-          style={[styles.ellipse, styles.topRight]}
-        />
-        <Image
-          source={require("../../assets/elipse-3.png")}
-          style={[styles.ellipse, styles.topRight2]}
-        />
-      </View>
-      <Text style={styles.title}>Login</Text>
-      <View style={styles.inputsC}>
-        <CustomInput
-          label="E-mail"
-          placeholder="Your email or phone"
-          value={email}
-          onChangeText={(txt) => {
-            setEmail(txt);
-            setErrors((prev) => ({ ...prev, email: "" }));
-          }}
-          error={errors.email}
-        />
-        <CustomInput
-          label="Password"
-          placeholder="••••••••"
-          secureTextEntry
-          value={password}
-          onChangeText={(txt) => {
-            setPassword(txt);
-            setErrors((prev) => ({ ...prev, password: "" }));
-          }}
-          error={errors.password}
-        />
-        {authError ? (
-          <View style={styles.errorBanner}>
-            <Ionicons
-              name="alert-circle-outline"
-              size={18}
-              color={colors.textError}
-            />
-            <Text style={styles.errorBannerText}>{authError}</Text>
-          </View>
-        ) : null}
-      </View>
-      <Text
-        style={styles.forget}
-        onPress={() => router.push("/(auth)/passReset")}
-      >
-        Forgot password?
-      </Text>
+    <SlideWrapper disableDrawerAnimation>
+      <View style={styles.container}>
+        <View style={styles.ellipseC}>
+          <Image
+            source={require("../../assets/elipse-1.png")}
+            style={[styles.ellipse, styles.topLeft]}
+          />
+          <Image
+            source={require("../../assets/elipse-2.png")}
+            style={[styles.ellipse, styles.topRight]}
+          />
+          <Image
+            source={require("../../assets/elipse-3.png")}
+            style={[styles.ellipse, styles.topRight2]}
+          />
+        </View>
+        <Text style={styles.title}>Login</Text>
+        <View style={styles.inputsC}>
+          <CustomInput
+            label="E-mail"
+            placeholder="Your email or phone"
+            value={email}
+            onChangeText={(txt) => {
+              setEmail(txt);
+              setErrors((prev) => ({ ...prev, email: "" }));
+            }}
+            error={errors.email}
+          />
+          <CustomInput
+            label="Password"
+            placeholder="••••••••"
+            secureTextEntry
+            value={password}
+            onChangeText={(txt) => {
+              setPassword(txt);
+              setErrors((prev) => ({ ...prev, password: "" }));
+            }}
+            error={errors.password}
+          />
+          {authError ? (
+            <View style={styles.errorBanner}>
+              <Ionicons
+                name="alert-circle-outline"
+                size={18}
+                color={colors.textError}
+              />
+              <Text style={styles.errorBannerText}>{authError}</Text>
+            </View>
+          ) : null}
+        </View>
+        <TouchableOpacity
+          // style={{ alignSelf: "center" }}
+          onPress={() => router.push("/(auth)/passReset")}
+        >
+          <Text style={styles.forget}>Forgot password?</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        onPress={handleLogin}
-        style={styles.button}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.buttonT}>Login</Text>
-      </TouchableOpacity>
-      <Text
-        style={styles.createAcc}
-        onPress={() => router.push("/(auth)/signUp")}
-      >
-        Don’t have an account? <Text style={styles.loginText}>Sign Up</Text>
-      </Text>
-    </View>
+        <TouchableOpacity
+          onPress={handleLogin}
+          style={styles.button}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.buttonT}>Login</Text>
+        </TouchableOpacity>
+        <Text
+          style={styles.createAcc}
+          onPress={() => router.push("/(auth)/signUp")}
+        >
+          Don’t have an account? <Text style={styles.loginText}>Sign Up</Text>
+        </Text>
+      </View>
+    </SlideWrapper>
   );
 };
 
@@ -145,21 +141,6 @@ const getStyles = (colors, spacing, radius, typography, shadows) =>
     container: {
       backgroundColor: colors.background,
       flex: 1,
-    },
-
-    backButton: {
-      position: "absolute",
-      width: 38,
-      height: 38,
-      top: 37,
-      left: 27,
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      zIndex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      shadowColor: colors.shadowSoft,
-      ...shadows.card,
     },
 
     ellipseC: {
@@ -204,6 +185,8 @@ const getStyles = (colors, spacing, radius, typography, shadows) =>
     },
 
     forget: {
+      alignSelf: "center",
+      backgroundColor: "#000",
       textAlign: "center",
       fontFamily: typography.font.regular,
       fontSize: typography.size.lg,
