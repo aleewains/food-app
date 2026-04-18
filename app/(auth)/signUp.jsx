@@ -5,9 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
-  ImageBackground,
-  Modal,
-  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import {
@@ -95,73 +92,68 @@ const Login = () => {
   };
 
   return (
-    <SlideWrapper disableDrawerAnimation>
-      <View style={styles.container}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="chevron-back" size={22} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <View style={styles.ellipseC}>
-          <Image
-            source={require("../../assets/elipse-1.png")}
-            style={[styles.ellipse, styles.topLeft]}
-          />
-          <Image
-            source={require("../../assets/elipse-2.png")}
-            style={[styles.ellipse, styles.topRight]}
-          />
-          <Image
-            source={require("../../assets/elipse-3.png")}
-            style={[styles.ellipse, styles.topRight2]}
-          />
-        </View>
-
-        <Text style={styles.title}>Sign{"\n"}Up</Text>
-        <CustomInput
-          label="Full name"
-          placeholder="Enter Your Name"
-          value={fullName}
-          onChangeText={setFullName}
+    <View style={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <Ionicons name="chevron-back" size={22} color={colors.textPrimary} />
+      </TouchableOpacity>
+      <View style={styles.ellipseC}>
+        <Image
+          source={require("../../assets/elipse-1.png")}
+          style={[styles.ellipse, styles.topLeft]}
         />
-        <CustomInput
-          label="E-mail"
-          placeholder="Enter Your E-mail"
-          value={email}
-          onChangeText={(txt) => {
-            setEmail(txt);
-            setErrors((prev) => ({ ...prev, email: "" }));
-          }}
-          error={errors.email}
+        <Image
+          source={require("../../assets/elipse-2.png")}
+          style={[styles.ellipse, styles.topRight]}
         />
-
-        <CustomInput
-          label="Password"
-          placeholder="••••••••"
-          secureTextEntry
-          value={password}
-          onChangeText={(txt) => {
-            setPassword(txt);
-            setErrors((prev) => ({ ...prev, password: "" }));
-          }}
-          error={errors.password}
+        <Image
+          source={require("../../assets/elipse-3.png")}
+          style={[styles.ellipse, styles.topRight2]}
         />
-        <TouchableOpacity
-          onPress={handleCreate}
-          style={styles.button}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.buttonT}>SIGN UP</Text>
-        </TouchableOpacity>
-        <Text
-          style={styles.createAcc}
-          onPress={() => router.push("/(auth)/logIn")}
-        >
-          Already have an account? <Text style={styles.loginText}>Login</Text>
-        </Text>
       </View>
-    </SlideWrapper>
+
+      <Text style={styles.title}>Sign{"\n"}Up</Text>
+      <CustomInput
+        label="Full name"
+        placeholder="Enter Your Name"
+        value={fullName}
+        onChangeText={setFullName}
+      />
+      <CustomInput
+        label="E-mail"
+        placeholder="Enter Your E-mail"
+        value={email}
+        onChangeText={(txt) => {
+          setEmail(txt);
+          setErrors((prev) => ({ ...prev, email: "" }));
+        }}
+        error={errors.email}
+      />
+
+      <CustomInput
+        label="Password"
+        placeholder="••••••••"
+        secureTextEntry
+        value={password}
+        onChangeText={(txt) => {
+          setPassword(txt);
+          setErrors((prev) => ({ ...prev, password: "" }));
+        }}
+        error={errors.password}
+      />
+      <TouchableOpacity
+        onPress={handleCreate}
+        style={styles.button}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.buttonT}>SIGN UP</Text>
+      </TouchableOpacity>
+      <Text
+        style={styles.createAcc}
+        onPress={() => router.push("/(auth)/logIn")}
+      >
+        Already have an account? <Text style={styles.loginText}>Login</Text>
+      </Text>
+    </View>
   );
 };
 

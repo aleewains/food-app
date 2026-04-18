@@ -235,7 +235,7 @@ import { useColorScheme } from "react-native";
 
 export function useTheme() {
   const scheme = useColorScheme(); // "light" | "dark" | null
-  const colors = scheme === "light" ? darkColors : lightColors;
+  const colors = scheme === "dark" ? darkColors : lightColors;
   return {
     colors,
     spacing,

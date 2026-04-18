@@ -5,12 +5,16 @@
     "scheme": "food-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "icon": "./assets/logo.png",
+    "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "cover",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FCFCFD",
+      "dark": {
+        "image": "./assets/splash.png",
+        "backgroundColor": "#0F1117"
+      }
     },
     "ios": {
       "supportsTablet": true

@@ -8,7 +8,7 @@ export default function MainLayout() {
       drawerContent={(props) => <CustomDrawer {...props} />}
       screenOptions={{
         headerShown: false,
-        drawerStyle: { width: "50%", backgroundColor: "#fff" },
+        drawerStyle: { width: "50%" },
         overlayColor: "transparent",
         swipeEnabled: true, // Let the drawer handle edge swipes
         unmountOnBlur: false,

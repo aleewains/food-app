@@ -18,6 +18,7 @@ import { fetchUserProfile } from "../../../redux/userSlice";
 import { fetchAddresses } from "../../../redux/addressSlice";
 import { fetchOrders } from "../../../redux/orderSlice";
 import { useTheme, spacing, radius } from "../../../theme";
+import SlideWrapper from "../../../components/slideWrapper";
 
 const TAB_ORDER = ["home", "location", "cart", "favorite"];
 
@@ -86,7 +87,9 @@ export default function MainPager() {
           }
         >
           <View key="home" style={styles.page}>
-            <HomeScreen />
+            <SlideWrapper disableEnterAnimation disableDrawerAnimation>
+              <HomeScreen />
+            </SlideWrapper>
           </View>
           <View key="location" style={styles.page}>
             <LocationScreen />

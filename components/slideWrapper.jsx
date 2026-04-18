@@ -10,6 +10,7 @@ import Animated, {
 import { View, StyleSheet, Dimensions } from "react-native";
 import { useTheme } from "../theme";
 import { useNavigation } from "expo-router";
+import { pushScreen, popScreen } from "../utils/screenStack";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -18,6 +19,8 @@ export default function SlideWrapper({
   disableEnterAnimation = false,
   disableDrawerAnimation = false,
 }) {
+  const DURATION = 2500;
+
   const { colors } = useTheme();
   const progress = disableDrawerAnimation ? null : useDrawerProgress();
   const navigation = useNavigation();
@@ -26,22 +29,30 @@ export default function SlideWrapper({
 
   // Slide IN on mount
   useEffect(() => {
+    pushScreen(translateX); // ← add this
+
     if (!disableEnterAnimation) {
-      translateX.value = withTiming(0, { duration: 300 });
+      translateX.value = withTiming(0, { duration: DURATION });
     }
+
+    // return () => popScreen(); // ← add this
   }, [disableEnterAnimation]);
 
   // Intercept back gesture/button — animate out THEN go back
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (e) => {
+      const type = e.data.action.type;
+
+      //  let replace/reset pass through instantly — no slide-out
+      if (type === "REPLACE" || type === "RESET") return;
       // Only intercept if our animation hasn't played yet
       if (translateX.value === 0) {
         e.preventDefault(); // block the default instant removal
-
+        popScreen();
         // Slide out to right, then allow removal
         translateX.value = withTiming(
           SCREEN_WIDTH,
-          { duration: 300 },
+          { duration: DURATION },
           (finished) => {
             if (finished) {
               runOnJS(navigation.dispatch)(e.data.action);

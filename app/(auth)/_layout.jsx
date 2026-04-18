@@ -46,11 +46,6 @@ export default function AuthLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          detachPreviousScreen: false,
-          freezeOnBlur: false,
-          presentation: "transparentModal",
-          animation: "none", // SlideWrapper owns ALL animation
-          gestureEnabled: false, // we handle back ourselves in SlideWrapper
         }}
       >
         <Stack.Screen name="logIn" />

@@ -19,6 +19,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as NavigationBar from "expo-navigation-bar";
 import { ToastProvider } from "../context/ToastContext";
 import { UIProvider } from "../context/UIContext";
+import { useTheme } from "../theme";
 
 // Prevent the splash screen from hiding automatically
 SplashScreen.preventAutoHideAsync();
@@ -26,6 +27,7 @@ SplashScreen.preventAutoHideAsync();
 const WELCOME_KEY = "has_seen_welcome";
 
 export default function RootLayout() {
+  const { colors } = useTheme();
   // -------------------------------
   // 1️ State Hooks
   // -------------------------------
@@ -121,7 +123,9 @@ export default function RootLayout() {
   // 8️ Render App
   // -------------------------------
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView
+      style={{ flex: 1, backgroundColor: colors.background }}
+    >
       <Provider store={store}>
         <UIProvider>
           <SafeAreaProvider>
@@ -130,14 +134,21 @@ export default function RootLayout() {
             {/* Redirect to proper route */}
             <Redirect href={initialRoute} />
             {/* Stack navigator */}
-            <Stack screenOptions={{ headerShown: false }}>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: colors.background },
+              }}
+            >
               <Stack.Screen
                 name="(main)"
                 options={{ animation: "none", gestureEnabled: false }}
               />
               <Stack.Screen
                 name="(auth)"
-                options={{ animation: "slide_from_right" }}
+                options={{
+                  animation: "none",
+                }}
               />
 
               <Stack.Screen name="welcome" options={{ animation: "none" }} />

@@ -36,47 +36,42 @@ const Login = () => {
   };
 
   return (
-    <SlideWrapper disableDrawerAnimation>
-      <View style={styles.container}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="chevron-back" size={22} color="black" />
-        </TouchableOpacity>
-        <View style={styles.ellipseC}>
-          <Image
-            source={require("../../assets/elipse-1.png")}
-            style={[styles.ellipse, styles.topLeft]}
-          />
-          <Image
-            source={require("../../assets/elipse-2.png")}
-            style={[styles.ellipse, styles.topRight]}
-          />
-          <Image
-            source={require("../../assets/elipse-3.png")}
-            style={[styles.ellipse, styles.topRight2]}
-          />
-        </View>
-        <Text style={styles.title}>Reset Password</Text>
-        <Text style={styles.des}>
-          Please enter your email address to {"\n"}request a password reset
-        </Text>
-        <View style={styles.inputsC}>
-          <CustomInput
-            // label="E-mail"
-            placeholder="Your email or phone"
-            value={email}
-            onChangeText={setEmail}
-          />
-        </View>
-        {/* <Text style={styles.forget}>Forgot password?</Text> */}
-
-        <TouchableOpacity onPress={handlePasswordReset} style={styles.button}>
-          <Text style={styles.buttonT}>Send new password</Text>
-        </TouchableOpacity>
+    <View style={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <Ionicons name="chevron-back" size={22} color="black" />
+      </TouchableOpacity>
+      <View style={styles.ellipseC}>
+        <Image
+          source={require("../../assets/elipse-1.png")}
+          style={[styles.ellipse, styles.topLeft]}
+        />
+        <Image
+          source={require("../../assets/elipse-2.png")}
+          style={[styles.ellipse, styles.topRight]}
+        />
+        <Image
+          source={require("../../assets/elipse-3.png")}
+          style={[styles.ellipse, styles.topRight2]}
+        />
       </View>
-    </SlideWrapper>
+      <Text style={styles.title}>Reset Password</Text>
+      <Text style={styles.des}>
+        Please enter your email address to {"\n"}request a password reset
+      </Text>
+      <View style={styles.inputsC}>
+        <CustomInput
+          // label="E-mail"
+          placeholder="Your email or phone"
+          value={email}
+          onChangeText={setEmail}
+        />
+      </View>
+      {/* <Text style={styles.forget}>Forgot password?</Text> */}
+
+      <TouchableOpacity onPress={handlePasswordReset} style={styles.button}>
+        <Text style={styles.buttonT}>Send new password</Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 
