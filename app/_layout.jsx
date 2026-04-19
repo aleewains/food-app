@@ -17,6 +17,8 @@ import { useFonts } from "expo-font";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as NavigationBar from "expo-navigation-bar";
+import * as SystemUI from "expo-system-ui";
+
 import { ToastProvider } from "../context/ToastContext";
 import { UIProvider } from "../context/UIContext";
 import { useTheme } from "../theme";
@@ -49,14 +51,18 @@ export default function RootLayout() {
     "Adamina-Regular": require("../assets/fonts/Adamina-Regular.ttf"),
   });
 
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync("#FCFCFD"); // same as splash bg
+  }, []);
+
   // -------------------------------
   // 3️ Android Navigation Bar
   // -------------------------------
   useEffect(() => {
     if (Platform.OS === "android") {
-      NavigationBar.setBackgroundColorAsync("transparent");
+      // NavigationBar.setBackgroundColorAsync("transparent");
       NavigationBar.setButtonStyleAsync("dark");
-      NavigationBar.setPositionAsync("absolute");
+      // NavigationBar.setPositionAsync("absolute");
     }
   }, []);
 
