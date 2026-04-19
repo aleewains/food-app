@@ -33,7 +33,22 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-splash-screen",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FCFCFD",
+          "image": "./assets/splash.png",
+          "imageWidth": 200,
+          "dark": {
+            "backgroundColor": "#0F1117",
+            "image": "./assets/splash.png"
+          },
+          "android": {
+            "parentTheme": "TransparentStatus",
+            "darkMode": true
+          }
+        }
+      ],
       "@react-native-community/datetimepicker",
       [
         "expo-navigation-bar",
