@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/splash.png",
-      "resizeMode": "cover",
+      "resizeMode": "contain",
       "backgroundColor": "#FCFCFD",
       "dark": {
         "image": "./assets/splash.png",
@@ -19,6 +19,7 @@
     "ios": {
       "supportsTablet": true
     },
+
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
@@ -33,7 +34,14 @@
       "expo-router",
       "expo-font",
       "expo-splash-screen",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-navigation-bar",
+        {
+          "position": "absolute",
+          "style": "dark"
+        }
+      ]
     ],
     "extra": {
       "router": {},

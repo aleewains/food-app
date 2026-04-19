@@ -12,7 +12,7 @@ export default function MainLayout() {
         overlayColor: "transparent",
         swipeEnabled: true, // Let the drawer handle edge swipes
         unmountOnBlur: false,
-        freezeOnBlur: true,
+        freezeOnBlur: false,
       }}
     >
       <Drawer.Screen name="(stack)" options={{ title: "Main App" }} />

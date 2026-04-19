@@ -5,6 +5,7 @@
 //    import { colors, spacing, radius, typography, shadows } from '../theme';
 //    import { useTheme } from '../theme';   ← for dark-mode-aware values
 // ─────────────────────────────────────────────────────────────────────────────
+import { useColorScheme } from "react-native";
 
 // ─── LIGHT PALETTE ───────────────────────────────────────────────────────────
 export const lightColors = {
@@ -231,10 +232,10 @@ export const layout = {
 //    import { useTheme } from '../theme';
 //    const { colors } = useTheme();
 // ─────────────────────────────────────────────────────────────────────────────
-import { useColorScheme } from "react-native";
 
 export function useTheme() {
   const scheme = useColorScheme(); // "light" | "dark" | null
+
   const colors = scheme === "dark" ? darkColors : lightColors;
   return {
     colors,
