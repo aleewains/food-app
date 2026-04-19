@@ -84,7 +84,7 @@ export default function SearchResultsScreen() {
                     isFavorite={isFavorite(item.id)}
                     onPressFavorite={() => handleToggleFavorite(item)}
                     onPressCard={() =>
-                      router.push({
+                      router.navigate({
                         pathname: "/FoodDetailsScreen",
                         params: {
                           restaurant: JSON.stringify(item),

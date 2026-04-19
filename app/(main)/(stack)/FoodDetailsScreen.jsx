@@ -155,7 +155,7 @@ export default function FoodDetailsScreen() {
   };
 
   const handleTabChangeFromDetails = (tabName) => {
-    router.push({
+    router.navigate({
       pathname: "/(main)/(stack)/mainpager",
       params: { tab: tabName },
     });
@@ -218,7 +218,7 @@ export default function FoodDetailsScreen() {
                 </Text>
                 <TouchableOpacity
                   onPress={() =>
-                    router.push({
+                    router.navigate({
                       pathname: "/(main)/(stack)/ReviewScreen",
                       params: { restaurantId: restaurantData?.id },
                     })

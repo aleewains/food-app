@@ -6,6 +6,7 @@ import { useLocalSearchParams } from "expo-router";
 import Animated, {
   interpolate,
   useAnimatedStyle,
+  useSharedValue,
 } from "react-native-reanimated";
 
 import BottomNav from "../../../components/BottomNav";
@@ -16,9 +17,8 @@ import FavoriteScreen from "../screens/favorite";
 import { useDispatch } from "react-redux";
 import { fetchUserProfile } from "../../../redux/userSlice";
 import { fetchAddresses } from "../../../redux/addressSlice";
-import { fetchOrders } from "../../../redux/orderSlice";
-import { useTheme, spacing, radius } from "../../../theme";
-import SlideWrapper from "../../../components/slideWrapper";
+import { useTheme } from "../../../theme"; // ✅ fixed static import
+import { pushScreen, popScreen, clearStack } from "../../../utils/screenStack";
 
 const TAB_ORDER = ["home", "location", "cart", "favorite"];
 
@@ -27,10 +27,19 @@ export default function MainPager() {
   const { tab } = useLocalSearchParams();
   const pagerRef = useRef(null);
   const progress = useDrawerProgress();
-  const { colors } = useTheme();
+  const { colors, radius } = useTheme(); //  from hook not static import
 
   const initialTab = tab && TAB_ORDER.includes(tab) ? tab : "home";
   const [activeTab, setActiveTab] = useState(initialTab);
+
+  //  screenStack translateX for nudge effect
+  const translateX = useSharedValue(0); // mainpager starts at 0, no slide-in
+
+  // Register mainpager in screenStack
+  useEffect(() => {
+    pushScreen(translateX, false);
+    return () => popScreen(); // mainpager unmounts on logout — safe to cleanup here
+  }, []);
 
   useEffect(() => {
     dispatch(fetchUserProfile());
@@ -42,6 +51,7 @@ export default function MainPager() {
       const index = TAB_ORDER.indexOf(tab);
       pagerRef.current?.setPage(index);
       setActiveTab(tab);
+      c;
     }
   }, [tab]);
 
@@ -56,12 +66,18 @@ export default function MainPager() {
     return () => sub.remove();
   }, []);
 
+  //  combine drawer animation + screenStack nudge in one animatedStyle
   const animatedStyle = useAnimatedStyle(() => {
     const scale = interpolate(progress.value, [0, 1], [1, 0.75]);
     const borderRadius = interpolate(progress.value, [0, 1], [0, radius.full]);
-    const translateX = interpolate(progress.value, [0, 1], [0, 250]);
+    const drawerTranslateX = interpolate(progress.value, [0, 1], [0, 250]);
+    // const opacity = translateX.value < 0 ? 0 : 1;
+
     return {
-      transform: [{ scale }, { translateX }],
+      transform: [
+        { scale },
+        { translateX: drawerTranslateX + translateX.value }, //  drawer + nudge combined
+      ],
       borderRadius,
       overflow: "hidden",
     };
@@ -87,9 +103,7 @@ export default function MainPager() {
           }
         >
           <View key="home" style={styles.page}>
-            <SlideWrapper disableEnterAnimation disableDrawerAnimation>
-              <HomeScreen />
-            </SlideWrapper>
+            <HomeScreen />
           </View>
           <View key="location" style={styles.page}>
             <LocationScreen />
@@ -122,7 +136,7 @@ const makeStyles = (colors) =>
     },
     mainWrapper: {
       flex: 1,
-      backgroundColor: colors.surface,
+      backgroundColor: colors.background, // ✅ was "#000" / colors.surface — now correct
     },
     pager: { flex: 1 },
     page: { flex: 1 },

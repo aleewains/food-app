@@ -15,7 +15,7 @@ const ItemCard = ({
     <TouchableOpacity
       style={styles.card}
       onPress={onPressCard}
-      activeOpacity={0.8}
+      activeOpacity={0.95}
     >
       {/* Favorite Heart */}
       <TouchableOpacity style={styles.heartAction} onPress={onToggleFav}>

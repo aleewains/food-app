@@ -1,6 +1,12 @@
 import { Stack } from "expo-router";
+import { screenStack } from "../../../utils/screenStack";
+import { useTheme } from "../../../theme";
 
 export default function StackLayout() {
+  const { colors } = useTheme();
+  if (__DEV__) {
+    screenStack?.reset?.();
+  }
   return (
     <Stack
       screenOptions={{
@@ -22,6 +28,7 @@ export default function StackLayout() {
       <Stack.Screen name="myProfile" />
       <Stack.Screen name="deliveryAddress" />
       <Stack.Screen name="addAddress" />
+      <Stack.Screen name="ReviewScreen" />
     </Stack>
   );
 }

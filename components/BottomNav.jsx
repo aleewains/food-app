@@ -89,7 +89,7 @@ export default function BottomNav({ activeTab, onChange, onReselect }) {
 const getStyles = (colors, spacing, radius, typography) =>
   StyleSheet.create({
     wrapper: {
-      bottom: 30,
+      bottom: 0,
     },
 
     container: {
@@ -98,7 +98,9 @@ const getStyles = (colors, spacing, radius, typography) =>
       alignItems: "center",
       backgroundColor: colors.surface,
       paddingVertical: spacing.md + 2,
-      height: 70,
+      height: 90,
+      paddingTop: 3,
+      paddingBottom: 30,
     },
 
     item: {

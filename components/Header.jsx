@@ -81,7 +81,11 @@ const Header = ({ showBackButton = false, title = "", onBackPress = null }) => {
       <TouchableOpacity
         activeOpacity={0.8}
         style={styles.profilePhoto}
-        onPress={() => router.push("/(main)/(stack)/myProfile")}
+        onPress={() =>
+          router.push({
+            pathname: "/(main)/(stack)/myProfile",
+          })
+        }
       >
         <Image source={profile} style={styles.profileImage} />
       </TouchableOpacity>

@@ -35,6 +35,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchRestaurants } from "../../redux/restaurantSlice";
 import { toggleFavorite, fetchFavorites } from "../../redux/favoriteSlice";
 import { useTheme } from "../../theme";
+import SlideWrapper from "../../components/slideWrapper";
 
 const categories = [
   { title: "Burger", image: require("../../assets/slider/burger.png") },
@@ -180,7 +181,7 @@ export default function HomeScreen() {
           <Text style={styles.featuredResturant}>Featured Restaurants</Text>
           <TouchableOpacity
             style={styles.ViewAll}
-            onPress={() => router.push("/(main)/(stack)/search-results")}
+            onPress={() => router.navigate("/(main)/(stack)/search-results")}
           >
             <Text style={styles.ViewAllText}>View All</Text>
             <Image
@@ -213,7 +214,7 @@ export default function HomeScreen() {
               imageUrl={{ uri: item.imageUrl }}
               tags={item.tags}
               onPressCard={() =>
-                router.push({
+                router.navigate({
                   pathname: "/(main)/(stack)/FoodDetailsScreen",
                   params: {
                     restaurant: JSON.stringify(item),

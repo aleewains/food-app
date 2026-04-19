@@ -56,13 +56,13 @@ export default function DeliveryAddress() {
     ]);
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#FE724C" />
-      </View>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <View style={styles.loader}>
+  //       <ActivityIndicator size="large" color="#FE724C" />
+  //     </View>
+  //   );
+  // }
 
   return (
     <SlideWrapper disableEnterAnimation>

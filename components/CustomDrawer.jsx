@@ -57,7 +57,10 @@ export default function CustomDrawer({ navigation }) {
         style={styles.item}
         onPress={() => {
           navigation.closeDrawer();
-          router.push("/(main)/(stack)/myOrders");
+          router.navigate({
+            pathname: "/(main)/(stack)/myOrders",
+            params: { fromDrawer: "true" },
+          });
         }}
       >
         <View style={styles.drawerItems}>
@@ -70,7 +73,10 @@ export default function CustomDrawer({ navigation }) {
         style={styles.item}
         onPress={() => {
           navigation.closeDrawer();
-          router.push("/(main)/(stack)/myProfile");
+          router.navigate({
+            pathname: "/(main)/(stack)/myProfile",
+            params: { fromDrawer: "true" },
+          });
         }}
       >
         <View style={styles.drawerItems}>
@@ -83,7 +89,10 @@ export default function CustomDrawer({ navigation }) {
         style={styles.item}
         onPress={() => {
           navigation.closeDrawer();
-          router.push("/(main)/(stack)/deliveryAddress");
+          router.navigate({
+            pathname: "/(main)/(stack)/deliveryAddress",
+            params: { fromDrawer: "true" },
+          });
         }}
       >
         <View style={styles.drawerItems}>

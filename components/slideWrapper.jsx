@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { useDrawerProgress } from "@react-navigation/drawer";
 import Animated, {
   interpolate,
@@ -9,67 +9,72 @@ import Animated, {
 } from "react-native-reanimated";
 import { View, StyleSheet, Dimensions } from "react-native";
 import { useTheme } from "../theme";
-import { useNavigation } from "expo-router";
-import { pushScreen, popScreen } from "../utils/screenStack";
+import { useNavigation, useLocalSearchParams } from "expo-router";
+import {
+  pushScreen,
+  popScreen,
+  snapScreen,
+  clearStack,
+} from "../utils/screenStack";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
+const DURATION = 300;
+// SlideWrapper.jsx — full update
 
 export default function SlideWrapper({
   children,
   disableEnterAnimation = false,
   disableDrawerAnimation = false,
 }) {
-  const DURATION = 2500;
-
   const { colors } = useTheme();
-  const progress = disableDrawerAnimation ? null : useDrawerProgress();
+  const progress = useDrawerProgress();
   const navigation = useNavigation();
   const translateX = useSharedValue(disableEnterAnimation ? 0 : SCREEN_WIDTH);
   const styles = makeStyles(colors);
+  const { fromDrawer } = useLocalSearchParams();
+  const isFromDrawer = fromDrawer === "true";
 
-  // Slide IN on mount
   useEffect(() => {
-    pushScreen(translateX); // ← add this
-
-    if (!disableEnterAnimation) {
+    pushScreen(translateX, isFromDrawer);
+    if (!disableEnterAnimation && !isFromDrawer) {
       translateX.value = withTiming(0, { duration: DURATION });
+    } else {
+      translateX.value = 0;
     }
+  }, []);
 
-    // return () => popScreen(); // ← add this
-  }, [disableEnterAnimation]);
-
-  // Intercept back gesture/button — animate out THEN go back
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (e) => {
       const type = e.data.action.type;
-
-      //  let replace/reset pass through instantly — no slide-out
-      if (type === "REPLACE" || type === "RESET") return;
-      // Only intercept if our animation hasn't played yet
+      if (type === "REPLACE" || type === "RESET") {
+        snapScreen();
+        return;
+      }
       if (translateX.value === 0) {
-        e.preventDefault(); // block the default instant removal
+        e.preventDefault();
         popScreen();
-        // Slide out to right, then allow removal
         translateX.value = withTiming(
           SCREEN_WIDTH,
           { duration: DURATION },
           (finished) => {
-            if (finished) {
-              runOnJS(navigation.dispatch)(e.data.action);
-            }
+            if (finished) runOnJS(navigation.dispatch)(e.data.action);
           },
         );
       }
     });
-
     return unsubscribe;
   }, [navigation]);
 
-  // Drawer scale/translate animation
+  //  drawer bg layer — only visible when drawer is opening
+  const drawerBgStyle = useAnimatedStyle(() => {
+    if (disableDrawerAnimation || !progress) return { opacity: 0 };
+    return {
+      opacity: progress.value > 0 ? 1 : 0,
+    };
+  });
+
   const drawerStyle = useAnimatedStyle(() => {
-    if (disableDrawerAnimation || !progress) {
-      return {};
-    }
+    if (disableDrawerAnimation || !progress) return {};
     const scale = interpolate(progress.value, [0, 1], [1, 0.75]);
     const borderRadius = interpolate(progress.value, [0, 1], [0, 30]);
     const drawerTranslateX = interpolate(progress.value, [0, 1], [0, 250]);
@@ -80,13 +85,14 @@ export default function SlideWrapper({
     };
   });
 
-  // Slide in/out animation
   const slideStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
 
   return (
     <View style={styles.container}>
+      {/* ✅ only visible when drawer opens — covers mainpager bleed, invisible during normal nav */}
+      <Animated.View style={[styles.drawerBg, drawerBgStyle]} />
       <Animated.View style={[styles.main, drawerStyle, slideStyle]}>
         {children}
       </Animated.View>
@@ -96,6 +102,15 @@ export default function SlideWrapper({
 
 const makeStyles = (colors) =>
   StyleSheet.create({
-    container: { flex: 1 },
-    main: { flex: 1, backgroundColor: colors.background },
+    container: {
+      flex: 1,
+    },
+    drawerBg: {
+      ...StyleSheet.absoluteFillObject, // ✅ sits behind main, fills container
+      backgroundColor: colors.surfaceAlt, // ✅ matches drawer panel color
+    },
+    main: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
   });
