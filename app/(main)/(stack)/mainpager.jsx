@@ -19,6 +19,7 @@ import { fetchUserProfile } from "../../../redux/userSlice";
 import { fetchAddresses } from "../../../redux/addressSlice";
 import { useTheme } from "../../../theme"; // ✅ fixed static import
 import { pushScreen, popScreen, clearStack } from "../../../utils/screenStack";
+import * as SplashScreen from "expo-splash-screen";
 
 const TAB_ORDER = ["home", "location", "cart", "favorite"];
 
@@ -34,6 +35,10 @@ export default function MainPager() {
 
   //  screenStack translateX for nudge effect
   const translateX = useSharedValue(0); // mainpager starts at 0, no slide-in
+
+  useEffect(() => {
+    SplashScreen.hideAsync();
+  }, []);
 
   // Register mainpager in screenStack
   useEffect(() => {
@@ -51,7 +56,6 @@ export default function MainPager() {
       const index = TAB_ORDER.indexOf(tab);
       pagerRef.current?.setPage(index);
       setActiveTab(tab);
-      c;
     }
   }, [tab]);
 
@@ -132,12 +136,12 @@ const makeStyles = (colors) =>
   StyleSheet.create({
     backgroundContainer: {
       flex: 1,
-      backgroundColor: colors.surfaceAlt,
+      backgroundColor: colors.surfaceMuted,
     },
     mainWrapper: {
       flex: 1,
-      backgroundColor: colors.background, // ✅ was "#000" / colors.surface — now correct
+      backgroundColor: colors.background, //  was "#000" / colors.surface — now correct
     },
-    pager: { flex: 1 },
-    page: { flex: 1 },
+    pager: { flex: 1, backgroundColor: colors.background },
+    page: { flex: 1, backgroundColor: colors.background },
   });

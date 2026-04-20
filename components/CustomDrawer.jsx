@@ -136,7 +136,7 @@ const makeStyles = (colors) =>
     container: {
       width: "100%",
       height: "100%",
-      backgroundColor: colors.surfaceAlt,
+      // backgroundColor: colors.surfaceAlt,
       padding: spacing.xxl,
     },
     profileSection: {

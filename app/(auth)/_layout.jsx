@@ -3,6 +3,7 @@ import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as Font from "expo-font";
+import * as SplashScreen from "expo-splash-screen";
 
 // Define custom fonts
 const customFonts = {
@@ -25,6 +26,10 @@ export default function AuthLayout() {
       setFontsLoaded(true); // Continue even if fonts fail
     }
   };
+
+  useEffect(() => {
+    SplashScreen.hideAsync();
+  }, []);
 
   useEffect(() => {
     loadFonts();

@@ -25,7 +25,8 @@
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.alonejack.foodapp"
+      "package": "com.alonejack.foodapp",
+      "allowBackup": false
     },
     "web": {
       "favicon": "./assets/logo.png"
@@ -52,8 +53,8 @@
           "position": "absolute",
           "style": "dark"
         }
-      ],
-      "./plugins/withTransparentNavBar"
+      ]
+      // "./plugins/withTransparentNavBar"
     ],
     "extra": {
       "router": {},

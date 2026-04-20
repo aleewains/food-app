@@ -3,10 +3,10 @@ import { Stack, useRouter } from "expo-router";
 import { Provider } from "react-redux";
 import {
   View,
-  ActivityIndicator,
   StatusBar,
   Platform,
   StyleSheet,
+  useColorScheme,
 } from "react-native";
 import { onAuthStateChanged } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -18,8 +18,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as NavigationBar from "expo-navigation-bar";
 import * as SystemUI from "expo-system-ui";
-
-import { ToastProvider } from "../context/ToastContext";
 import { UIProvider } from "../context/UIContext";
 import { useTheme } from "../theme";
 
@@ -31,6 +29,7 @@ export default function RootLayout() {
   const { colors } = useTheme();
   const router = useRouter();
   const hasRedirected = useRef(false);
+  const colorScheme = useColorScheme();
 
   // -------------------------------
   // 1️ State Hooks
@@ -51,23 +50,28 @@ export default function RootLayout() {
     "Adamina-Regular": require("../assets/fonts/Adamina-Regular.ttf"),
   });
 
+  // -------------------------------
+  // 3️ System UI background
+  // -------------------------------
   useEffect(() => {
-    SystemUI.setBackgroundColorAsync("#FCFCFD"); // same as splash bg
-  }, []);
+    const bgColor = colorScheme === "dark" ? "#0F1117" : "#FCFCFD";
+    SystemUI.setBackgroundColorAsync(bgColor);
+  }, [colorScheme]);
 
   // -------------------------------
-  // 3️ Android Navigation Bar
+  // 4️ Android Navigation Bar
   // -------------------------------
   useEffect(() => {
     if (Platform.OS === "android") {
-      // NavigationBar.setBackgroundColorAsync("transparent");
-      NavigationBar.setButtonStyleAsync("dark");
-      // NavigationBar.setPositionAsync("absolute");
+      const iconStyle = colorScheme === "dark" ? "light" : "dark";
+      NavigationBar.setButtonStyleAsync(iconStyle);
     }
-  }, []);
+  }, [colorScheme]);
 
   // -------------------------------
-  // 4️ Auth + Welcome Initialization
+  // 5️ Auth + Welcome Initialization
+  // ❌ Removed SplashScreen.hideAsync() from here
+  // ✅ Each destination screen will call it when fully painted
   // -------------------------------
   useEffect(() => {
     let unsubscribeAuth;
@@ -82,12 +86,11 @@ export default function RootLayout() {
             user: user,
             hasSeenWelcome: !!welcomeVal,
           });
-          SplashScreen.hideAsync();
+          // ❌ No SplashScreen.hideAsync() here anymore
         });
       } catch (e) {
         console.error(e);
         setAuthStatus((prev) => ({ ...prev, loading: false }));
-        SplashScreen.hideAsync();
       }
     };
 
@@ -99,7 +102,7 @@ export default function RootLayout() {
   }, []);
 
   // -------------------------------
-  // 5️ Redirect ONCE — must be before any early returns
+  // 6️ Redirect ONCE
   // -------------------------------
   const { loading, user, hasSeenWelcome } = authStatus;
 
@@ -118,20 +121,12 @@ export default function RootLayout() {
   }, [loading, fontsLoaded, fontError]);
 
   // -------------------------------
-  // 6️ Early exits AFTER all hooks
+  // 7️ Early exits AFTER all hooks
   // -------------------------------
   if (!fontsLoaded && !fontError) return null;
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#000" />
-      </View>
-    );
-  }
-
   // -------------------------------
-  // 7️ Render App
+  // 8️ Render App
   // -------------------------------
   return (
     <GestureHandlerRootView
@@ -145,7 +140,6 @@ export default function RootLayout() {
               screenOptions={{
                 headerShown: false,
                 contentStyle: { backgroundColor: colors.background },
-                // position: "absolute",
               }}
             >
               <Stack.Screen

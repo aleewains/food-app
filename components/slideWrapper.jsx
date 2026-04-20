@@ -106,8 +106,8 @@ const makeStyles = (colors) =>
       flex: 1,
     },
     drawerBg: {
-      ...StyleSheet.absoluteFillObject, // ✅ sits behind main, fills container
-      backgroundColor: colors.surfaceAlt, // ✅ matches drawer panel color
+      ...StyleSheet.absoluteFillObject, //  sits behind main, fills container
+      backgroundColor: colors.surfaceMuted, //  matches drawer panel color
     },
     main: {
       flex: 1,

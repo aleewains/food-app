@@ -20,7 +20,11 @@ export default function StackLayout() {
     >
       <Stack.Screen
         name="mainpager"
-        options={{ animation: "none", presentation: "card" }} // mainpager stays card
+        options={{
+          animation: "none",
+          presentation: "card",
+          contentStyle: { backgroundColor: colors.surfaceMuted },
+        }} // mainpager stays card
       />
       <Stack.Screen name="search-results" />
       <Stack.Screen name="FoodDetailsScreen" />

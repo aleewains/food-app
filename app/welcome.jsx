@@ -10,6 +10,7 @@ import React from "react";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
+import * as SplashScreen from "expo-splash-screen";
 
 const welcome = "has_seen_welcome";
 const { height } = Dimensions.get("window");
@@ -21,6 +22,10 @@ const handleNavigation = async (route) => {
 };
 
 export default function WelcomeScreen() {
+  useEffect(() => {
+    SplashScreen.hideAsync();
+  }, []);
+
   return (
     <ImageBackground
       source={require("../assets/bg.png")}
