@@ -9,6 +9,10 @@ const withNavBarStyles = (config) => {
       const existing = styleItems.find((item) => item.$?.name === name);
       if (existing) {
         existing._ = value;
+        // Remove tools:targetApi attribute if present
+        if (existing.$?.["tools:targetApi"]) {
+          delete existing.$["tools:targetApi"];
+        }
       } else {
         styleItems.push({ $: { name }, _: value });
       }
@@ -19,6 +23,12 @@ const withNavBarStyles = (config) => {
     );
 
     if (appTheme && appTheme.item) {
+      // Change enforceNavigationBarContrast to false instead of removing
+      addOrUpdateItem(
+        appTheme.item,
+        "android:enforceNavigationBarContrast",
+        "false",
+      );
       addOrUpdateItem(
         appTheme.item,
         "android:navigationBarColor",
@@ -38,10 +48,6 @@ const withNavBarStyles = (config) => {
         appTheme.item,
         "android:windowBackground",
         "@color/splashscreen_background",
-      );
-      // Remove enforceNavigationBarContrast from base styles
-      appTheme.item = appTheme.item.filter(
-        (item) => item.$?.name !== "android:enforceNavigationBarContrast",
       );
     }
 
