@@ -42,10 +42,6 @@
           "dark": {
             "backgroundColor": "#0F1117",
             "image": "./assets/splash.png"
-          },
-          "android": {
-            "parentTheme": "TransparentStatus",
-            "darkMode": true
           }
         }
       ],
@@ -56,7 +52,8 @@
           "position": "absolute",
           "style": "dark"
         }
-      ]
+      ],
+      "./plugins/withTransparentNavBar"
     ],
     "extra": {
       "router": {},
