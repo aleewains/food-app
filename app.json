@@ -3,7 +3,7 @@
     "name": "food-app",
     "slug": "food-app",
     "scheme": "food-app",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "automatic",
@@ -53,8 +53,8 @@
           "position": "absolute",
           "style": "dark"
         }
-      ]
-      // "./plugins/withTransparentNavBar"
+      ],
+      "./plugins/withTransparentNavBar"
     ],
     "extra": {
       "router": {},
